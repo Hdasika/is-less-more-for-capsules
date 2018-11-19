@@ -6,7 +6,7 @@ import tensorflow as tf
 class CapsMaxPool(Layer):
   def __init__(self, pool_size=(2,2), strides=None, padding='VALID', **kwargs):
     """Max pooling for [capsules]_
-    
+
     Layer to perform max pooling given a previous capsule comprised (or treated)
     as capsules.
 
@@ -15,7 +15,7 @@ class CapsMaxPool(Layer):
     of the data. Using the norm we run them through a "filtering", similar to usual
     2D max pool with pool size and strides, and choose the capsules which has the greatest
     norm in a particular pooling area over the whole input.
-    
+
     :param pool_size: Pool size, defaults to (2,2)
     :type pool_size: tuple[int]|list[int], optional - Dimension should be [height x width]
     :param strides: Strides to take for the pooling (only consider along height and axis), defaults to None
@@ -25,7 +25,7 @@ class CapsMaxPool(Layer):
     :param kwargs: Some common options to Keras layer
     :type kwargs: dict
 
-    .. [capsules]: https://arxiv.org/pdf/1710.09829.pdf 
+    .. [capsules]: https://arxiv.org/pdf/1710.09829.pdf
     .. [tensorflow convolution]: https://www.tensorflow.org/api_guides/python/nn#Convolution
     .. note::
       The implementation is inspired and possible by the following resources:
@@ -49,12 +49,12 @@ class CapsMaxPool(Layer):
   def build(self, input_shape):
     # do nothing because there are no weights during pooling
     super().build(input_shape)
-  
+
   def call(self, input):
     """Capsule max pool call
-    
+
     Do the max pooling
-    
+
     :param input: An input Tensor assumed to be coming from a capsule layer.
     :type input: Tensor, [batch size x height x width x capsule channels x atoms (instantiation parameters)]
     """
@@ -65,15 +65,15 @@ class CapsMaxPool(Layer):
       ksize=self.pool_size,
       strides=self.strides,
       padding=self.padding,
-      Targmax=tf.int32, # make int32
       name='entity_probability_max_pool'
     )
-    flattened_indices_of_greatest_probabilities = maxpooled_with_argmax.argmax
+    flattened_indices_of_greatest_probabilities = tf.reshape(maxpooled_with_argmax.argmax, shape=[-1], name='flattened_argmax')
     input_dynamic_shape = tf.shape(input)
     # will only have two dimensions from here on out [rank x number of elements after max pool]
     unraveled_indices_of_greatest_probabilities = tf.unravel_index(
       flattened_indices_of_greatest_probabilities,
-      dims=input_dynamic_shape[:-1]
+      dims=tf.cast(input_dynamic_shape[:-1], dtype=tf.int64),
+      name='map_argmax_indices_to_original'
     )
     unraveled_indices_of_greatest_probabilities = tf.transpose(unraveled_indices_of_greatest_probabilities, (1,0))
     # shape will be rank
@@ -91,15 +91,15 @@ class CapsMaxPool(Layer):
       shape_after_maxpool[3],
       input_dynamic_shape[-1]
     ]
-    max_pool_on_capsules = tf.reshape(max_pool_on_capsules, shape_for_capsule_maxpool)
+    max_pool_on_capsules = tf.reshape(max_pool_on_capsules, shape_for_capsule_maxpool, name='maxpooled_caps')
     return max_pool_on_capsules
 
   def compute_input_shape(self, input_shape):
     """Compute input shape
-    
+
     Function to compute end input shape result after max pooling.
     Adapted from https://github.com/keras-team/keras/blob/f899d0fb336cce4061093a575a573c4f897106e1/keras/layers/pooling.py#L180
-    
+
     :param input_shape: Shape of input
     :type input_shape: Tensor, dimension [batch size x height x width x channels x instantiation parameters]
     """
