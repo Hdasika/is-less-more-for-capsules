@@ -1,7 +1,6 @@
-# from keras.engine.topology import Layer
+import tensorflow as tf
 from tensorflow.keras.layers import Layer
 from keras.utils.conv_utils import conv_output_length
-import tensorflow as tf
 
 class CapsMaxPool(Layer):
   def __init__(self, pool_size=(2,2), strides=None, padding='VALID', **kwargs):
@@ -35,9 +34,9 @@ class CapsMaxPool(Layer):
     if strides is None:
       strides = pool_size
 
-    assert type(pool_size) is list or type(pool_size) is tuple
+    assert isinstance(pool_size, list) or isinstance(pool_size, tuple)
     assert len(pool_size) == 2, 'Pool size needs to be over height and width only'
-    assert type(strides) is list or type(strides) is tuple
+    assert isinstance(strides, list) or isinstance(strides, tuple)
     assert len(strides) == 2, 'Strides need be over height and width only'
 
     # readjust pool size stride to have dimension [batch size x height x width x capsule channels]

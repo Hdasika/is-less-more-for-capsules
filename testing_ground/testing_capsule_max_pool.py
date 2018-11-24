@@ -1,4 +1,4 @@
-from capsule_max_pool import CapsMaxPool
+from layers.capsule_max_pool import CapsMaxPool
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.train import AdamOptimizer
