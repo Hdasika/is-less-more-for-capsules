@@ -9,9 +9,6 @@ import numpy as np
 
 # 1. Standardize images across the dataset, mean=0, stdev=1
 '''standardize pixel values across the entire dataset'''
-# 2. ZCA whitining REF http://ufldl.stanford.edu/wiki/index.php/Whitening 
-'''When using ZCA whitening (unlike PCA whitening), 
-we usually keep all \textstyle n dimensions of the data, and do not try to reduce its dimension. '''
 
 # K.set_image_dim_ordering('th')
 # load data
@@ -29,7 +26,7 @@ y_train = to_categorical(y_train, num_classes=fine_classes)
 y_test = to_categorical(y_test, num_classes=fine_classes)
 print('y shape', y_train.shape, y_test.shape)
 # define data preparation
-datagen = ImageDataGenerator()
+datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
 # fit centering and normalization from data
 #datagen.fit(X_train)
 
