@@ -1,13 +1,19 @@
-import args as args
 import keras
 import tensorflow as tf
 import keras.backend as K
 import numpy as np
+import sys
+from os.path import dirname, abspath
+sys.path.append(dirname(dirname(abspath(__file__))))
+print(sys.path)
+
 from keras_preprocessing.image import ImageDataGenerator
 from keras import layers, callbacks, models, optimizers
 from keras.models import Sequential
 from SegCaps.capsule_layers import Length, ConvCapsuleLayer, Mask
 from SegCaps.custom_losses import margin_loss
+
+print(keras.backend.tensorflow_backend._get_available_gpus())
 
 channels = 3
 kernel_size = 5
@@ -63,7 +69,7 @@ digitcaps = ConvCapsuleLayer(kernel_size=5, num_capsule=8, num_atoms=32, strides
 #============================
 # have taken this from Rodney's
 _, H, W, C, A = digitcaps.get_shape()
-# Btara's comment: I'm not sure what the appropriate shape for the 'y' here, but I think 
+# Btara's comment: I'm not sure what the appropriate shape for the 'y' here, but I think
 y = layers.Input(shape=(32,32,3))
 # Btara's comment: Masking is not really needed unless we want to do reconstruction (possible though)
 masked_by_y = Mask()([digitcaps, y])  # The true label is used to mask the output of capsule layer. For training
@@ -105,11 +111,11 @@ def train_generator(x, y, batch_size, shift_fraction=0.):
 # Btara's comment: This part may need to have some fine tuning (maybe we don't want to write graph/images)
 # adding a callback does decrease the runtime of the training
 # also I'd like to see the gradients, in order to do that histogram_freq needs to be > 0, see https://keras.io/callbacks/#tensorboard
-tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0, write_graph=True, write_images=True)
-train_model.compile(optimizer=optimizers.Adam(lr=args.lr),loss=[margin_loss, 'mse'],
-                  loss_weights=[1., args.lam_recon])
-train_model.fit([y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-              validation_data= [""], callbacks=[tbCallBack])
+# tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0, write_graph=True, write_images=True)
+# train_model.compile(optimizer=optimizers.Adam(lr=args.lr),loss=[margin_loss, 'mse'],
+#                   loss_weights=[1., args.lam_recon])
+# train_model.fit([y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+#               validation_data= [""], callbacks=[tbCallBack])
 
 
 #Want to normalize input and seems ImageDataGenerator can help us with that https://keras.io/preprocessing/image/#imagedatagenerator-class. Also check out
@@ -117,11 +123,11 @@ train_model.fit([y_train, x_train], batch_size=args.batch_size, epochs=args.epoc
 
 # Btara's comment: I guess this is taken from Rodney's? We can readjust this as needed, for the time being see
 # https://keras.io/models/model/ (fit_generator part)
-train_model.fit_generator(generator=train_generator(x_train, y_train, args.batch_size, args.shift_fraction),
-                        steps_per_epoch=int(y_train.shape[0] / args.batch_size),
-                        epochs=args.epochs,
-                        validation_data=[""],
-                        callbacks=[tbCallBack])
+# train_model.fit_generator(generator=train_generator(x_train, y_train, args.batch_size, args.shift_fraction),
+#                         steps_per_epoch=int(y_train.shape[0] / args.batch_size),
+#                         epochs=args.epochs,
+#                         validation_data=[""],
+#                         callbacks=[tbCallBack])
 
 
 # Btara's comments: yeah I was thinking of doing some things (not with capsules) at the last few layers
