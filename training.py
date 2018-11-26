@@ -35,7 +35,7 @@ datagen = ImageDataGenerator()
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
-for X_batch, y_batch in datagen.flow(X_train, y_train, batch_size=9):
+'''for X_batch, y_batch in datagen.flow(X_train, y_train, batch_size=9):
 	print(X_batch[0])
 	# create a grid of 3x3 images
 	for i in range(0, 9):
@@ -44,3 +44,4 @@ for X_batch, y_batch in datagen.flow(X_train, y_train, batch_size=9):
 	# show the plot
 	pyplot.show()
 	break
+'''
