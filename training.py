@@ -28,7 +28,7 @@ print('y shape', y_train.shape, y_test.shape)
 # define data preparation
 datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
 # fit centering and normalization from data
-#datagen.fit(X_train)
+datagen.fit(X_train)
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
@@ -42,3 +42,11 @@ datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalizat
 	pyplot.show()
 	break
 '''
+
+
+# fitting the model 
+
+
+
+
+
