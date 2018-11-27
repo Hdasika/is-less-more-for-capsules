@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Layer
+from keras.layers import Layer
 from keras.utils.conv_utils import conv_output_length
 
 class CapsMaxPool(Layer):

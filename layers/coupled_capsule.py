@@ -1,7 +1,7 @@
 import tensorflow as tf
 import keras.backend as K
-from tensorflow.keras import initializers
-from tensorflow.keras.layers import Layer
+from keras import initializers
+from keras.layers import Layer
 from keras.utils.conv_utils import conv_output_length
 from SegCaps.capsule_layers import update_routing
 
