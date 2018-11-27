@@ -22,7 +22,7 @@ X_test = X_test.reshape(X_test.shape[0], 3, 32, 32)
 X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
 # define data preparation
-datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, zca_whitening=True)
+datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
 # fit parameters from data
 datagen.fit(X_train)
 
