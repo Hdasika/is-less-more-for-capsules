@@ -10,7 +10,6 @@ class CoupledConvCapsule(Layer):
 		self,
 		num_capsule_types,
 		num_caps_instantiations,
-		input_caps_instantiations,
 		filter_size=(2,2),
 		strides=(2,2),
 		padding='same',
@@ -37,8 +36,6 @@ class CoupledConvCapsule(Layer):
 		:type num_capsule_types: int
 		:param num_caps_instantiations: Number of instantiation parameters for capsules in this layer
 		:type num_caps_instantiations: int
-		:param input_caps_instantiations: Number of instantiation parameters for input capsules
-		:type input_caps_instantiations: int
 		:param filter_size: Filter size, defaults to (2,2)
 		:type filter_size: tuple[int], optional
 		:param strides: Convolutional stride, defaults to (2,2)
@@ -56,7 +53,6 @@ class CoupledConvCapsule(Layer):
 		self.strides = strides
 		self.num_capsule_types = num_capsule_types
 		self.num_caps_instantiations = num_caps_instantiations
-		self.input_caps_instantiations = input_caps_instantiations
 		self.filter_initializer = filter_initializer
 		self.padding = padding
 		self.routing = routing
