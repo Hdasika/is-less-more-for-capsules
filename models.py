@@ -53,6 +53,3 @@ def TrialModel():
 
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
-
-model = TrialModel()
-model.summary(line_length=150)
