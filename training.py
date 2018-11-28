@@ -43,7 +43,7 @@ datagen.fit(X_train)
 	# pyplot.show()
 	# break
 
-batch_size = 64
+batch_size = 8
 def createDataGenerator(gen, X, Y_fine, Y_coarse):
 	global batch_size
 	while True:
@@ -58,7 +58,7 @@ def createDataGenerator(gen, X, Y_fine, Y_coarse):
 		for X_batched, Y_batched_fine in gen.flow(X, Y_fine, batch_size=batch_size, shuffle=False):
 			until_idx = current_idx + X_batched.shape[0]
 			Y_batched_coarse = Y_coarse[current_idx:until_idx]
-			current_idx += until_idx
+			current_idx += X_batched.shape[0]
 
 			yield X_batched, [Y_batched_coarse, Y_batched_fine]
 
@@ -75,7 +75,7 @@ model.compile(optimizer=adam, metrics=metrics, loss=loss, loss_weights=loss_weig
 
 try:
 	train_history = model.fit_generator(generator_for_training, epochs=50,
-		steps_per_epoch=X_train.shape[0] / batch_size, verbose=1, maximum_queue_size=20, workers=2)
+		steps_per_epoch=X_train.shape[0] / batch_size, verbose=1, max_queue_size=10, workers=1)
 except KeyboardInterrupt:
 	print('Keyboard interrupted during training...')
 finally:
