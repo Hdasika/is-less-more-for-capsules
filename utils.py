@@ -41,33 +41,19 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 			if current_idx >= X.shape[0]:
 				break
 
-def prepare_for_trial_model_one(args):
-	dataset = get_cifar100_dataset(coarse_too=True)
+def prepare_for_model(model_fn, args, coarse_too=False):
+	dataset = get_cifar100_dataset(coarse_too)
 	datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
 	# fit on X
 	datagen.fit(dataset[0][0])
 	gen = create_data_generator(datagen, dataset[0][0], dataset[1][0],
-															Y_coarse=dataset[1][1], batch_size=args.batch_size)
-	model = models.TrialModelOne()
+								Y_coarse=dataset[1][1], batch_size=args.batch_size)
+	model = model_fn()
 	adam = optimizers.Adam()
-	model_metrics = {
-		'superclass_out': metrics.categorical_accuracy,
-		'subclass_out': metrics.categorical_accuracy
-	}
 	loss = 'categorical_crossentropy'
-	loss_weights = [0.2, 0.8]
-	model.compile(optimizer=adam, metrics=model_metrics, loss=loss, loss_weights=loss_weights)
-	return dataset, gen, model
-
-def prepare_for_trial_model_two(args):
-	dataset = get_cifar100_dataset()
-	datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
-	# fit on X
-	datagen.fit(dataset[0][0])
-	gen = create_data_generator(datagen, dataset[0][0], dataset[1][0], batch_size=args.batch_size)
-	model = models.TrialModelTwo()
-	adam = optimizers.Adam()
-	metrics = ['accuracy']
-	loss = 'categorical_crossentropy'
-	model.compile(optimizer=adam, metrics=metrics, loss=loss)
+	if coarse_too:
+		loss_weights = [0.2, 0.8]
+		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
+	else:
+		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss)
 	return dataset, gen, model

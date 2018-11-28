@@ -63,19 +63,19 @@ def TrialModelTwo():
 	################## conv layers #####################
 	_, H, W, C = convolutional.get_shape()
 	reshaped_conv = layers.Reshape((H.value, W.value, 1, C.value), name='reshape_conv')(convolutional)
-	primary_caps = ConvCapsuleLayer(kernel_size=2, num_capsule=4, num_atoms=12, strides=1,
+	primary_caps = ConvCapsuleLayer(kernel_size=2, num_capsule=4, num_atoms=8, strides=1,
 									 padding='same', routings=1, name='primary_caps')(reshaped_conv)
-	caps_conv_1 = ConvCapsuleLayer(kernel_size=2, num_capsule=8, num_atoms=16, strides=2,
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=2, num_capsule=8, num_atoms=12, strides=2,
 									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
-	caps_conv_2 = ConvCapsuleLayer(kernel_size=2, num_capsule=16, num_atoms=24, strides=1,
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=2, num_capsule=16, num_atoms=16, strides=1,
 									 padding='same', routings=3, name='caps_conv_2')(caps_conv_1)
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=4, num_capsule=32, num_atoms=24, strides=2,
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=4, num_capsule=32, num_atoms=20, strides=2,
 									 padding='same', routings=3, name='caps_conv_3')(caps_conv_2)
-	caps_conv_4 = ConvCapsuleLayer(kernel_size=4, num_capsule=32, num_atoms=32, strides=1,
+	caps_conv_4 = ConvCapsuleLayer(kernel_size=4, num_capsule=32, num_atoms=24, strides=1,
 									 padding='same', routings=3, name='caps_conv_4')(caps_conv_3)
 	caps_conv_5 = ConvCapsuleLayer(kernel_size=5, num_capsule=64, num_atoms=32, strides=1,
 									 padding='same', routings=3, name='caps_conv_5')(caps_conv_4)
-	caps_conv_6 = ConvCapsuleLayer(kernel_size=5, num_capsule=100, num_atoms=64, strides=1,
+	caps_conv_6 = ConvCapsuleLayer(kernel_size=5, num_capsule=100, num_atoms=32, strides=1,
 									 padding='same', routings=3, name='caps_conv_6')(caps_conv_5)
 	############################################################
 
@@ -86,4 +86,49 @@ def TrialModelTwo():
 	#############################################################
 
 	model = models.Model(inputs=input, outputs=subclass_out)
+	return model
+
+def TrialModelThree():
+	################## normal convolution ######################
+	input = layers.Input((32,32,3))
+	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
+	############################################################
+
+	################## conv layers #####################
+	_, H, W, C = convolutional.get_shape()
+	reshaped_conv = layers.Reshape((H.value, W.value, 1, C.value), name='reshape_conv')(convolutional)
+	primary_caps = ConvCapsuleLayer(kernel_size=2, num_capsule=4, num_atoms=8, strides=1,
+									 padding='same', routings=1, name='primary_caps')(reshaped_conv)
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=2, num_capsule=8, num_atoms=12, strides=2,
+									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=2, num_capsule=12, num_atoms=16, strides=1,
+									 padding='same', routings=3, name='caps_conv_2')(caps_conv_1)
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=24, strides=1,
+									 padding='same', routings=3, name='caps_conv_3')(caps_conv_2)
+	caps_conv_4 = ConvCapsuleLayer(kernel_size=3, num_capsule=16, num_atoms=24, strides=2,
+									 padding='same', routings=3, name='caps_conv_4')(caps_conv_3)
+	caps_conv_5 = ConvCapsuleLayer(kernel_size=5, num_capsule=20, num_atoms=32, strides=1,
+									 padding='same', routings=3, name='caps_conv_5')(caps_conv_4)
+	############################################################
+
+	################## norm output for superclass ###############
+	superclass_norm = CapsuleNorm(name='superclass_norm')(caps_conv_5)
+	superclass_avg_pool = layers.GlobalAveragePooling2D(data_format='channels_last', name='superclass_avg_pool')(superclass_norm)
+	superclass_out = layers.Activation('softmax', name='superclass_out')(superclass_avg_pool)
+	#############################################################
+
+	##################### End layers ###########################
+	conv_last_layers_1 = layers.Conv2D(filters=32, kernel_size=3, padding='valid', activation='relu',
+											data_format='channels_last', name='conv_last_1')(superclass_norm)
+	conv_last_layers_2 = layers.Conv2D(filters=64, kernel_size=5, padding='valid', activation='relu',
+											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_2')(conv_last_layers_1)
+	conv_last_layers_3 = layers.Conv2D(filters=96, kernel_size=5, padding='valid', activation='relu',
+											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_2')(conv_last_layers_2)
+	conv_last_layers_4 = layers.Conv2D(filters=128, kernel_size=7, strides=2, padding='valid', activation='relu',
+											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_3')(conv_last_layers_3)
+	last_avg_pool = layers.GlobalAveragePooling2D(data_format='channels_last', name='last_avg_pool')(conv_last_layers_4)
+	subclass_out = layers.Dense(100, activation='softmax', name='subclass_out')(last_avg_pool)
+	#############################################################
+
+	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
