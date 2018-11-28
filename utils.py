@@ -31,7 +31,7 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 
 		current_idx = 0
 		for X_batched, Y_batched_fine in gen.flow(X, Y_fine, batch_size=batch_size, shuffle=False):
-			if Y_coarse:
+			if Y_coarse is not None:
 				until_idx = current_idx + X_batched.shape[0]
 				Y_batched_coarse = Y_coarse[current_idx:until_idx]
 				yield X_batched, [Y_batched_coarse, Y_batched_fine]
