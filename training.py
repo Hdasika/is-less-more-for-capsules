@@ -8,6 +8,9 @@ parser.add_argument('--model_series', metavar='model', type=int, required=True, 
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
 parser.add_argument('--epochs', metavar='e', type=int, required=False, default=50, help='Epochs')
+parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.0001, help='Learning rate')
+parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
+parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
 
 '''Point of Comparison for Image Augmentation'''

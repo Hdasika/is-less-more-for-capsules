@@ -118,14 +118,14 @@ def TrialModelThree():
 	#############################################################
 
 	##################### End layers ###########################
-	conv_last_layers_1 = layers.Conv2D(filters=32, kernel_size=3, padding='valid', activation='relu',
+	conv_last_layers_1 = layers.Conv2D(filters=32, kernel_size=3, padding='same', activation='relu',
 											data_format='channels_last', name='conv_last_1')(superclass_norm)
-	conv_last_layers_2 = layers.Conv2D(filters=64, kernel_size=5, padding='valid', activation='relu',
+	conv_last_layers_2 = layers.Conv2D(filters=64, kernel_size=5, padding='same', activation='relu',
 											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_2')(conv_last_layers_1)
-	conv_last_layers_3 = layers.Conv2D(filters=96, kernel_size=5, padding='valid', activation='relu',
-											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_2')(conv_last_layers_2)
-	conv_last_layers_4 = layers.Conv2D(filters=128, kernel_size=7, strides=2, padding='valid', activation='relu',
-											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_3')(conv_last_layers_3)
+	conv_last_layers_3 = layers.Conv2D(filters=96, kernel_size=5, padding='same', activation='relu',
+											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_3')(conv_last_layers_2)
+	conv_last_layers_4 = layers.Conv2D(filters=128, kernel_size=7, strides=2, padding='same', activation='relu',
+											kernel_initializer='he_normal', data_format='channels_last', name='conv_last_4')(conv_last_layers_3)
 	last_avg_pool = layers.GlobalAveragePooling2D(data_format='channels_last', name='last_avg_pool')(conv_last_layers_4)
 	subclass_out = layers.Dense(100, activation='softmax', name='subclass_out')(last_avg_pool)
 	#############################################################

@@ -49,10 +49,10 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 	gen = create_data_generator(datagen, dataset[0][0], dataset[1][0],
 								Y_coarse=dataset[1][1], batch_size=args.batch_size)
 	model = model_fn()
-	adam = optimizers.Adam()
+	adam = optimizers.Adam(lr=args.lr, decay=1e-6)
 	loss = 'categorical_crossentropy'
 	if coarse_too:
-		loss_weights = [0.2, 0.8]
+		loss_weights = [args.super_loss_weight, args.sub_loss_weight]
 		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
 	else:
 		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss)
