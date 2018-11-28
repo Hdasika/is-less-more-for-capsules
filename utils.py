@@ -26,7 +26,7 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 
 		X = X[permutations]
 		Y_fine = Y_fine[permutations]
-		if Y_coarse:
+		if Y_coarse is not None:
 			Y_coarse = Y_coarse[permutations]
 
 		current_idx = 0
