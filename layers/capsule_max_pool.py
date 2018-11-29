@@ -67,6 +67,7 @@ class CapsMaxPool(Layer):
       name='entity_probability_max_pool'
     )
     flattened_indices_of_greatest_probabilities = tf.reshape(maxpooled_with_argmax.argmax, shape=[-1], name='flattened_argmax')
+    input_shape = input.shape
     input_dynamic_shape = tf.shape(input)
     # will only have two dimensions from here on out [rank x number of elements after max pool]
     unraveled_indices_of_greatest_probabilities = tf.unravel_index(
@@ -82,15 +83,17 @@ class CapsMaxPool(Layer):
       name='max_pooling_over_capsules'
     )
     # reshape to be the same shape
-    shape_after_maxpool = tf.shape(maxpooled_with_argmax.output)
+    shape_after_maxpool = maxpooled_with_argmax.output.shape
+    dynamic_shape_after_maxpool = tf.shape(maxpooled_with_argmax.output)
     shape_for_capsule_maxpool = [
-      shape_after_maxpool[0],
+      dynamic_shape_after_maxpool[0],
       shape_after_maxpool[1],
       shape_after_maxpool[2],
       shape_after_maxpool[3],
-      input_dynamic_shape[-1]
+      input_shape[-1]
     ]
     max_pool_on_capsules = tf.reshape(max_pool_on_capsules, shape_for_capsule_maxpool, name='maxpooled_caps')
+    max_pool_on_capsules.set_shape((None, shape_after_maxpool[1], shape_after_maxpool[2], shape_after_maxpool[3], input_shape[-1]))
     return max_pool_on_capsules
 
   def compute_input_shape(self, input_shape):
@@ -102,11 +105,11 @@ class CapsMaxPool(Layer):
     :param input_shape: Shape of input
     :type input_shape: Tensor, dimension [batch size x height x width x channels x instantiation parameters]
     """
-    assert input_shape.shape.ndims == 4
-    shape_without_instantiation_parameters = input_shape[:-1]
-    height = shape_without_instantiation_parameters[0]
-    width = shape_without_instantiation_parameters[1]
+    assert input_shape.shape.ndims == 5
+    height = input_shape[1]
+    width = input_shape[2]
 
+    print("COMPUTE INPUT SHAPE CALLED")
     height = conv_output_length(height, self.pool_size[1], self.padding, self.strides[1])
     width = conv_output_length(width, self.pool_size[2], self.padding, self.strides[2])
-    return (height, width, input_shape[-2], input_shape[-1])
+    return (input_shape[0], height, width, input_shape[-2], input_shape[-1])

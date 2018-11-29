@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import models
 from keras import optimizers, metrics
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
@@ -43,17 +42,17 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 
 def prepare_for_model(model_fn, args, coarse_too=False):
 	dataset = get_cifar100_dataset(coarse_too)
-	datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
+	datagen = ImageDataGenerator(rescale=1./255)
 	# fit on X
-	datagen.fit(dataset[0][0])
+	# datagen.fit(dataset[0][0])
 	gen = create_data_generator(datagen, dataset[0][0], dataset[1][0],
 								Y_coarse=dataset[1][1], batch_size=args.batch_size)
 	model = model_fn()
-	adam = optimizers.Adam(lr=args.lr, decay=1e-6)
+	opt = optimizers.SGD(lr=args.lr, decay=1e-6)
 	loss = 'categorical_crossentropy'
 	if coarse_too:
 		loss_weights = [args.super_loss_weight, args.sub_loss_weight]
-		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
+		model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
 	else:
-		model.compile(optimizer=adam, metrics=[metrics.categorical_accuracy], loss=loss)
+		model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss)
 	return dataset, gen, model

@@ -1,10 +1,7 @@
-import tensorflow as tf 
-import utils
-import models
 import argparse
 
 parser = argparse.ArgumentParser(description='CMPT726 Project')
-parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3], help='Choose model series')
+parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3,4,5,6,7], help='Choose model series')
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
 parser.add_argument('--epochs', metavar='e', type=int, required=False, default=50, help='Epochs')
@@ -12,6 +9,12 @@ parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.
 parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
 parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
+
+# parse sys.argv
+args = parser.parse_args()
+
+import utils
+import models
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
@@ -25,17 +28,22 @@ parser.add_argument('--workers', metavar='w', type=int, required=False, default=
 	# pyplot.show()
 	# break
 
-# parse sys.argv
-args = parser.parse_args()
-
 if args.model_series == 1:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelOne, args, coarse_too=True)
 elif args.model_series == 2:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelTwo, args)
 elif args.model_series == 3:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelThree, args, coarse_too=True)
+elif args.model_series == 4:
+	dataset, gen, model = utils.prepare_for_model(models.TrialModelFour, args, coarse_too=True)
+elif args.model_series == 5:
+	dataset, gen, model = utils.prepare_for_model(models.TrialModelFive, args)
+elif args.model_series == 6:
+	dataset, gen, model = utils.prepare_for_model(models.TrialModelSix, args)
+elif args.model_series == 7:
+	dataset, gen, model = utils.prepare_for_model(models.TrialModelSeven, args)
 
-model.summary()
+model.summary(line_length=150)
 
 try:
 	train_history = model.fit_generator(gen, epochs=args.epochs,
