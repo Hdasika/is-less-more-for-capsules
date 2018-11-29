@@ -4,10 +4,17 @@ from keras import optimizers, metrics
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 
-def get_cifar100_dataset(coarse_too=False):
+def convert_rgb_to_gray(images):
+  return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
+
+def get_cifar100_dataset(coarse_too=False, gray=False):
 	(X_train, y_train_fine), (X_test, y_test_fine) = tf.keras.datasets.cifar100.load_data(label_mode='fine')
 	y_train_fine = to_categorical(y_train_fine, num_classes=100)
 	y_test_fine = to_categorical(y_test_fine, num_classes=100)
+
+	if gray:
+		# make grayscale
+		X_train = convert_rgb_to_gray(X_train)
 
 	y_train_coarse = None
 	y_test_coarse = None
@@ -41,13 +48,13 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 				break
 
 def prepare_for_model(model_fn, args, coarse_too=False):
-	dataset = get_cifar100_dataset(coarse_too)
+	dataset = get_cifar100_dataset(coarse_too, args.gray)
 	datagen = ImageDataGenerator(rescale=1./255)
 	# fit on X
 	# datagen.fit(dataset[0][0])
 	gen = create_data_generator(datagen, dataset[0][0], dataset[1][0],
 								Y_coarse=dataset[1][1], batch_size=args.batch_size)
-	model = model_fn()
+	model = model_fn(args.gray)
 	opt = optimizers.SGD(lr=args.lr, decay=1e-6)
 	loss = 'categorical_crossentropy'
 

@@ -7,9 +7,9 @@ from SegCaps.capsule_layers import ConvCapsuleLayer
 def FullConvolutionalModel():
 	pass
 
-def TrialModelOne():
+def TrialModelOne(gray=False):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -53,9 +53,9 @@ def TrialModelOne():
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelTwo():
+def TrialModelTwo(gray=False):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -87,9 +87,9 @@ def TrialModelTwo():
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelThree():
+def TrialModelThree(gray=False):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -132,9 +132,9 @@ def TrialModelThree():
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelFour():
+def TrialModelFour(gray=False):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=16, kernel_size=3, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -174,11 +174,11 @@ def TrialModelFour():
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelFive():
+def TrialModelFive(gray=False):
 	# Just basic convolution from https://arxiv.org/pdf/1412.6806.pdf model C
 
 	################## normal convolution ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_1')(input)
 	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_2')(conv_1)
 	max_pool_1 = layers.MaxPool2D(pool_size=3, strides=2, padding='same', name='max_pool_1')(conv_2)
@@ -195,11 +195,11 @@ def TrialModelFive():
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelSix():
+def TrialModelSix(gray=False):
 	# similar to 5 but with convolutional capsules
 
 	################## convolutional caps ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=96, kernel_size=3, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	_, H, W, C = convolutional.get_shape()
 	reshaped_conv = layers.Reshape((H.value, W.value, 1, C.value), name='reshape_conv')(convolutional)
@@ -236,11 +236,11 @@ def TrialModelSix():
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelSeven():
+def TrialModelSeven(gray=False):
 	# Much simpler model, similar to Hinton's origina
 
 	################## convolutional ######################
-	input = layers.Input((32,32,3))
+	input = layers.Input((32,32,3 if not gray else 1))
 	convolutional = layers.Conv2D(filters=256, kernel_size=5, strides=1, padding='same',
 															  activation='relu', data_format='channels_last', name='conv')(input)
 	_, H, W, C = convolutional.get_shape()

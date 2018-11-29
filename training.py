@@ -8,6 +8,7 @@ parser.add_argument('--epochs', metavar='e', type=int, required=False, default=5
 parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.0001, help='Learning rate')
 parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
 parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
+parser.add_argument('--gray', required=False, action='store_true', help='Turn images to RGB first or not')
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
@@ -21,15 +22,6 @@ from keras import callbacks
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
-# for X_batch, y_batch in datagen.flow(X_train, [y_train, y_train_coarse], batch_size=9):
-	#print(X_batch[0], y_batch)
-	# # create a grid of 3x3 images
-	# for i in range(0, 9):
-	# 	pyplot.subplot(330 + 1 + i)
-	# 	pyplot.imshow(X_batch[i].astype(np.int32), cmap=pyplot.get_cmap('brg'), interpolation='nearest')
-	# # show the plot
-	# pyplot.show()
-	# break
 
 if args.model_series == 1:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelOne, args, coarse_too=True)
