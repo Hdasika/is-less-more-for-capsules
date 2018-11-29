@@ -8,6 +8,8 @@ parser.add_argument('--epochs', metavar='e', type=int, required=False, default=5
 parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.0001, help='Learning rate')
 parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
 parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
+parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
+parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
 
 # parse sys.argv
@@ -15,6 +17,7 @@ args = parser.parse_args()
 
 import utils
 import models
+from keras import callbacks
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
@@ -46,8 +49,24 @@ elif args.model_series == 7:
 model.summary(line_length=150)
 
 try:
-	train_history = model.fit_generator(gen, epochs=args.epochs,
-		steps_per_epoch=dataset[0][0].shape[0] / args.batch_size, verbose=1, max_queue_size=10, workers=args.workers)
+	cbs = []
+
+	if args.tensorboard:
+		print(f'Will record for tensorboard to {args.tb_dir}')
+		tb = callbacks.TensorBoard(log_dir=args.tb_dir, write_graph=False,
+					batch_size=args.batch_size, update_freq=1000)
+		cbs.append(tb)
+	
+	if cbs:
+		train_history = model.fit_generator(gen, epochs=args.epochs,
+			steps_per_epoch=dataset[0][0].shape[0] / args.batch_size, verbose=1, max_queue_size=10,
+			workers=args.workers, callbacks=cbs)
+	else:
+		# for some reason google colab can't have tensorboard running...
+		train_history = model.fit_generator(gen, epochs=args.epochs,
+			steps_per_epoch=dataset[0][0].shape[0] / args.batch_size, verbose=1, max_queue_size=10,
+			workers=args.workers)
+
 except KeyboardInterrupt:
 	print('Keyboard interrupted during training...')
 finally:

@@ -50,6 +50,7 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 	model = model_fn()
 	opt = optimizers.SGD(lr=args.lr, decay=1e-6)
 	loss = 'categorical_crossentropy'
+
 	if coarse_too:
 		loss_weights = [args.super_loss_weight, args.sub_loss_weight]
 		model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
