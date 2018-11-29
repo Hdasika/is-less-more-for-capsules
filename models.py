@@ -2,14 +2,16 @@ from keras import layers, models
 from layers.coupled_capsule import CoupledConvCapsule
 from layers.capsule_max_pool import CapsMaxPool
 from layers.capsule_norm import CapsuleNorm
+import layers.capsule as caps
 from SegCaps.capsule_layers import ConvCapsuleLayer
+from types import SimpleNamespace
 
 def FullConvolutionalModel():
 	pass
 
-def TrialModelOne(gray=False):
+def TrialModelOne(args):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -53,9 +55,9 @@ def TrialModelOne(gray=False):
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelTwo(gray=False):
+def TrialModelTwo(args):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -87,9 +89,9 @@ def TrialModelTwo(gray=False):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelThree(gray=False):
+def TrialModelThree(args):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=8, kernel_size=2, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -132,9 +134,9 @@ def TrialModelThree(gray=False):
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelFour(gray=False):
+def TrialModelFour(args):
 	################## normal convolution ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=16, kernel_size=3, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	############################################################
 
@@ -174,11 +176,11 @@ def TrialModelFour(gray=False):
 	model = models.Model(inputs=input, outputs=[superclass_out, subclass_out])
 	return model
 
-def TrialModelFive(gray=False):
+def TrialModelFive(args):
 	# Just basic convolution from https://arxiv.org/pdf/1412.6806.pdf model C
 
 	################## normal convolution ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_1')(input)
 	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_2')(conv_1)
 	max_pool_1 = layers.MaxPool2D(pool_size=3, strides=2, padding='same', name='max_pool_1')(conv_2)
@@ -195,11 +197,11 @@ def TrialModelFive(gray=False):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelSix(gray=False):
+def TrialModelSix(args):
 	# similar to 5 but with convolutional capsules
 
 	################## convolutional caps ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=96, kernel_size=3, strides=1, padding='same', activation='relu', data_format='channels_last', name='conv')(input)
 	_, H, W, C = convolutional.get_shape()
 	reshaped_conv = layers.Reshape((H.value, W.value, 1, C.value), name='reshape_conv')(convolutional)
@@ -236,11 +238,11 @@ def TrialModelSix(gray=False):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-def TrialModelSeven(gray=False):
+def TrialModelSeven(args):
 	# Much simpler model, similar to Hinton's origina
 
 	################## convolutional ######################
-	input = layers.Input((32,32,3 if not gray else 1))
+	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=256, kernel_size=5, strides=1, padding='same',
 															  activation='relu', data_format='channels_last', name='conv')(input)
 	_, H, W, C = convolutional.get_shape()
@@ -266,3 +268,64 @@ def TrialModelSeven(gray=False):
 
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
+
+def TrialModelEight(args):
+	# Like model seven but with Full-Connected (FC) capsule at the end and a more
+	# appropriate PrimaryCaps layer
+
+	################## convolutional ######################
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	convolutional = layers.Conv2D(filters=128, kernel_size=5, strides=1, padding='same',
+															  activation='relu', data_format='channels_last', name='conv')(input)
+	_, H, W, C = convolutional.get_shape()
+
+	################# primary caps ########################
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=8,
+									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
+	#######################################################
+
+	# ################# convolutional caps ##################
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=16, num_atoms=12, strides=1,
+									 padding='valid', routings=3, name='caps_conv_1', kernel_initializer=args.init)(primary_caps)
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=32, num_atoms=12, strides=2,
+									 padding='valid', routings=3, name='caps_conv_2', kernel_initializer=args.init)(caps_conv_1)
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=5, num_capsule=32, num_atoms=24, strides=1,
+									 padding='valid', routings=3, name='caps_conv_3', kernel_initializer=args.init)(caps_conv_2)
+	caps_conv_4 = ConvCapsuleLayer(kernel_size=5, num_capsule=20, num_atoms=24, strides=1,
+									 padding='valid', routings=3, name='caps_conv_4', kernel_initializer=args.init)(caps_conv_3)
+	# ############################################################
+
+	# ####################### end layer predictions ##############
+	flatten_caps = layers.Reshape(target_shape=(-1, 24), name='flatten_caps')(caps_conv_4)
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=48, routings=3,
+									 kernel_initializer=args.init, name='subclass_prediction_caps')(flatten_caps)
+	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
+	# ############################################################
+
+	model = models.Model(inputs=input, outputs=subclass_out)
+	return model
+
+def TrialModelNine(args):
+	# Trying out similar structure as https://arxiv.org/pdf/1805.11195.pdf
+
+	################## convolutional ######################
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid',
+															  activation='relu', data_format='channels_last', name='conv')(input)
+
+	################# primary caps ########################
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=16, n_channels=32,
+									 kernel_size=9, strides=2, padding='valid', initializer=args.init, to_flatten=True)
+	#######################################################
+
+	# ####################### end layer predictions ###########################
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=32, routings=3,
+									 kernel_initializer=args.init, name='subclass_prediction_caps')(primary_caps)
+	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
+	# ############################################################
+
+	model = models.Model(inputs=input, outputs=subclass_out)
+	return model
+
+# model = TrialModelEight(SimpleNamespace(gray=False, init='glorot_uniform'))
+# model.summary()
