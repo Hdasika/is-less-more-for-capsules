@@ -1,4 +1,5 @@
 import argparse
+from layers.margin_loss import margin_loss
 
 parser = argparse.ArgumentParser(description='CMPT726 Project')
 parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9], help='Choose model series')
@@ -22,6 +23,18 @@ args = parser.parse_args()
 import utils
 import models
 from keras import callbacks
+
+
+def get_loss(root, split, net, recon_wei, choice):
+    if choice == 'mar':
+        loss = margin_loss(margin=0.4, downweight=0.5, pos_weight=1.0)
+    else:
+        raise Exception("Unknow loss_type")
+
+    if net.find('caps') != -1:
+        return {'out_seg': loss, 'out_recon': 'mse'}, {'out_seg': 1., 'out_recon': recon_wei}
+    else:
+        return loss, None
 
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images

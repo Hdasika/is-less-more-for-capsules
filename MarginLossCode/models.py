@@ -323,5 +323,5 @@ def TrialModelNine(args):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-model = TrialModelEight(SimpleNamespace(gray=False, init='glorot_uniform'))
-model.summary()
+# model = TrialModelEight(SimpleNamespace(gray=False, init='glorot_uniform'))
+# model.summary()
