@@ -4,6 +4,7 @@ from keras import optimizers, metrics
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
+import losses
 
 def convert_rgb_to_gray(images):
   return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
@@ -57,16 +58,11 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 		# permutation over batch size
 		permutations = np.random.permutation(X.shape[0])
 
-		X = X[permutations]
-		Y_fine = Y_fine[permutations]
-		if Y_coarse is not None:
-			Y_coarse = Y_coarse[permutations]
-
 		current_idx = 0
-		for X_batched, Y_batched_fine in gen.flow(X, Y_fine, batch_size=batch_size, shuffle=False):
+		for X_batched, Y_batched_fine in gen.flow(X[permutations], Y_fine[permutations], batch_size=batch_size, shuffle=False):
 			if Y_coarse is not None:
 				until_idx = current_idx + X_batched.shape[0]
-				Y_batched_coarse = Y_coarse[current_idx:until_idx]
+				Y_batched_coarse = Y_coarse[permutations[current_idx:until_idx]]
 				yield X_batched, [Y_batched_coarse, Y_batched_fine]
 			else:
 				yield X_batched, Y_batched_fine
@@ -82,8 +78,13 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 	gen = create_data_generator(datagen, dataset['X']['train'], dataset['y_fine']['train'],
 								Y_coarse=dataset['y_coarse']['train'], batch_size=args.batch_size)
 	model = model_fn(args)
-	opt = optimizers.SGD(lr=args.lr, decay=1e-6)
-	loss = 'categorical_crossentropy'
+	opt = optimizers.Adam(lr=args.lr, decay=1e-6)
+	if args.loss == 'cc':
+		loss = 'categorical_crossentropy'
+	elif args.loss == 'margin':
+		loss = losses.margin_loss(downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin)
+	elif args.loss == 'seg_margin':
+		loss = losses.seg_margin_loss()
 
 	if coarse_too:
 		loss_weights = [args.super_loss_weight, args.sub_loss_weight]
