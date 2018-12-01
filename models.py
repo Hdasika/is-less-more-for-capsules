@@ -275,29 +275,22 @@ def TrialModelEight(args):
 
 	################## convolutional ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
-	convolutional = layers.Conv2D(filters=128, kernel_size=5, strides=1, padding='same',
+	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid',
 															  activation='relu', data_format='channels_last', name='conv')(input)
-	_, H, W, C = convolutional.get_shape()
 
 	################# primary caps ########################
-	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=8,
-									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=32,
+									 kernel_size=9, strides=1, padding='valid', initializer=args.init)
 	#######################################################
 
 	# ################# convolutional caps ##################
-	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=16, num_atoms=12, strides=1,
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=9, num_capsule=24, num_atoms=16, strides=1,
 									 padding='valid', routings=3, name='caps_conv_1', kernel_initializer=args.init)(primary_caps)
-	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=32, num_atoms=12, strides=2,
-									 padding='valid', routings=3, name='caps_conv_2', kernel_initializer=args.init)(caps_conv_1)
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=5, num_capsule=32, num_atoms=24, strides=1,
-									 padding='valid', routings=3, name='caps_conv_3', kernel_initializer=args.init)(caps_conv_2)
-	caps_conv_4 = ConvCapsuleLayer(kernel_size=5, num_capsule=20, num_atoms=24, strides=1,
-									 padding='valid', routings=3, name='caps_conv_4', kernel_initializer=args.init)(caps_conv_3)
 	# ############################################################
 
 	# ####################### end layer predictions ##############
-	flatten_caps = layers.Reshape(target_shape=(-1, 24), name='flatten_caps')(caps_conv_4)
-	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=48, routings=3,
+	flatten_caps = layers.Reshape(target_shape=(-1, 16), name='flatten_caps')(caps_conv_1)
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=24, routings=3,
 									 kernel_initializer=args.init, name='subclass_prediction_caps')(flatten_caps)
 	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
 	# ############################################################
@@ -327,5 +320,5 @@ def TrialModelNine(args):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
-# model = TrialModelEight(SimpleNamespace(gray=False, init='glorot_uniform'))
-# model.summary()
+model = TrialModelEight(SimpleNamespace(gray=False, init='glorot_uniform'))
+model.summary()
