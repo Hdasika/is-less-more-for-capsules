@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import losses
+from threading import Lock
 from keras import optimizers, metrics
 from keras.models import load_model
 from keras.utils import to_categorical
@@ -55,6 +56,30 @@ def get_cifar100_dataset(args, coarse_too=False):
 		}
 	} 
 
+class ThreadSafeIter:
+	"""
+	Taken from Rodney's code
+	"""
+	def __init__(self, it):
+		self.it = it
+		self.lock = Lock()
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		with self.lock:
+			return next(self.it)
+
+def threadsafe_generator(f):
+	"""
+	Taken from Rodney's code
+	"""
+	def g(*a, **kw):
+			return ThreadSafeIter(f(*a, **kw))
+	return g
+
+@threadsafe_generator
 def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 	while True:
 		# permutation over batch size
