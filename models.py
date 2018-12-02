@@ -325,22 +325,23 @@ def TrialModelTen(args):
 
 	################## convolutional caps ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
-	convolutional = layers.Conv2D(filters=256, kernel_size=3, strides=1, padding='same', name='convolution')(input)
+	convolutional = layers.Conv2D(filters=256, kernel_size=3, strides=1,
+									 padding='same', activation='relu', kernel_initializer=args.init, name='convolution')(input)
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=32,
 									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
 	caps_conv_1_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=32, num_atoms=12, strides=1,
-									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
+									 padding='same', kernel_initializer=args.init, routings=3, name='caps_conv_1')(primary_caps)
 	coupled_caps_conv_1 = CoupledConvCapsule(num_capsule_types=24, num_caps_instantiations=16, filter_size=(3,3),
 									 padding='valid', filter_initializer=args.init, routings=3, name='coupled_caps_conv_1')(caps_conv_1_1)
 	caps_conv_2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=32, num_atoms=16, strides=1,
-									 padding='same', routings=3, name='caps_conv_2_1')(coupled_caps_conv_1)
+									 padding='same', kernel_initializer=args.init, routings=3, name='caps_conv_2_1')(coupled_caps_conv_1)
 	coupled_caps_conv_2 = CoupledConvCapsule(num_capsule_types=24, num_caps_instantiations=24, filter_size=(3,3),
 									 padding='valid', filter_initializer=args.init, routings=3, name='coupled_caps_conv_2')(caps_conv_2_1)
 
 	caps_conv_3_1 = ConvCapsuleLayer(kernel_size=1, num_capsule=20, num_atoms=24, strides=1,
-									 padding='valid', routings=1, name='caps_conv_3_1')(coupled_caps_conv_2)
+									 padding='valid', kernel_initializer=args.init, routings=3, name='caps_conv_3_1')(coupled_caps_conv_2)
 	caps_conv_3_2 = ConvCapsuleLayer(kernel_size=1, num_capsule=100, num_atoms=28, strides=1,
-									 padding='valid', routings=1, name='caps_conv_3_2')(caps_conv_3_1)
+									 padding='valid', kernel_initializer=args.init, routings=3, name='caps_conv_3_2')(caps_conv_3_1)
 	############################################################
 
 	####################### end layer predictions ###########################
