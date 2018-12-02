@@ -359,6 +359,41 @@ def TrialModelTen(args):
 	model = models.Model(inputs=input, outputs=superclass_out)
 	return model
 
+def TrialModelEleven(args):
+	# Like trial model six but with much smaller number of channels
+	# there seems to be a bug with keras and my implementation of capsule max pooling
+	# https://github.com/keras-team/keras/issues/11753
+	# so we go with all convolutional
+
+	################## convolutional caps ######################
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	convolutional = layers.Conv2D(filters=256, kernel_size=3, strides=1, padding='valid', name='convolution')(input)
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=32,
+									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=28, num_atoms=12, strides=1,
+									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
+	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=24, num_atoms=12, strides=2,
+									 padding='same', routings=3, name='caps_conv_stride2_1')(caps_conv_1)
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=16, num_atoms=24, strides=1,
+									 padding='same', routings=3, name='caps_conv_2')(caps_conv_stride2_1)
+	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=24, strides=2,
+									 padding='same', routings=3, name='caps_conv_stride2_2')(caps_conv_2)
+
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=28, strides=1,
+									 padding='valid', routings=1, name='caps_conv_3')(caps_conv_stride2_2)
+	caps_conv_4 = ConvCapsuleLayer(kernel_size=1, num_capsule=100, num_atoms=32, strides=1,
+									 padding='valid', routings=1, name='caps_conv_4')(caps_conv_3)
+	############################################################
+
+	####################### end layer predictions ###########################
+	caps_norm = CapsuleNorm(name='caps_norm')(caps_conv_4)
+	superclass_out = layers.GlobalAveragePooling2D(data_format='channels_last', name='superclass_out')(caps_norm)
+	############################################################
+
+	model = models.Model(inputs=input, outputs=superclass_out)
+	return model
+
+
 if __name__ == "__main__":
-	model = TrialModelNine(SimpleNamespace(gray=False, init='glorot_uniform'))
+	model = TrialModelEleven(SimpleNamespace(gray=False, init='glorot_uniform'))
 	model.summary()

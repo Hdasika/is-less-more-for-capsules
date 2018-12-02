@@ -3,7 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='CMPT726 Project')
 mutually_exclusive_options = parser.add_mutually_exclusive_group(required=True)
 mutually_exclusive_options.add_argument('--model_series', metavar='model', type=int,
-	choices=[1,2,3,4,5,6,7,8,9,10], help='Choose model series'
+	choices=[1,2,3,4,5,6,7,8,9,10,11], help='Choose model series'
 )
 mutually_exclusive_options.add_argument('--resume_model', metavar='model file', type=str,
 	help='Saved model to resume training from'
@@ -64,6 +64,8 @@ if args.model_series is not None:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelNine, args)
 	elif args.model_series == 10:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelTen, args)
+	elif args.model_series == 11:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelEleven, args)
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 
@@ -80,7 +82,7 @@ try:
 	if args.checkpoint:
 		print('Will checkpoint best model... checkpoint model name format is {cpfile}'.format(cpfile=args.checkpoint_file))
 		checkpointer = callbacks.ModelCheckpoint(args.checkpoint_file, monitor='val_categorical_accuracy',
-					verbose=1, save_best_only=True)
+					verbose=1, save_best_only=True, mode='max')
 		cbs.append(checkpointer)
 	
 	if dataset['y_coarse']['val'] is not None:
