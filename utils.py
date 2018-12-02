@@ -7,7 +7,8 @@ from keras.models import load_model
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer
+from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length
+from losses import margin_loss, seg_margin_loss
 
 def convert_rgb_to_gray(images):
   return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
@@ -118,7 +119,12 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 			'CoupledConvCapsule': CoupledConvCapsule,
 			'CapsMaxPool': CapsMaxPool,
 			'CapsuleNorm': CapsuleNorm,
-			'CapsuleLayer': CapsuleLayer
+			'CapsuleLayer': CapsuleLayer,
+			'Length': Length,
+			'_margin_loss': margin_loss(
+				downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin
+			),
+			'_seg_margin_loss': seg_margin_loss()
 		})
 		if len(model.outputs) == 2:
 			# coarse_too was given for this model so set it to True here

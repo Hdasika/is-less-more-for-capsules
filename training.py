@@ -89,7 +89,6 @@ try:
 		validation_data=(dataset['X']['val'], dataset['y_fine']['val'])
 
 	initial_epoch = args.resume_from_epoch if args.resume_from_epoch is not None else 0
-	print(initial_epoch)
 
 	train_history = model.fit_generator(gen, epochs=args.epochs,
 		steps_per_epoch=dataset['X']['train'].shape[0] // args.batch_size,

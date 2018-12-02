@@ -3,7 +3,6 @@ import keras.backend as K
 
 def margin_loss(downweight=0.5, pos_margin=0.9, neg_margin=0.1):
   def _margin_loss(y_true, y_pred):
-    print(downweight, pos_margin, neg_margin)
     """
     Taken from https://github.com/XifengGuo/CapsNet-Keras/blob/master/capsulenet.py#L80
     Margin loss for Eq.(4). When y_true[i, :] contains not just one `1`, this loss should work too. Not test it.
