@@ -1,10 +1,18 @@
 import argparse
 
 parser = argparse.ArgumentParser(description='CMPT726 Project')
-parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10], help='Choose model series')
+mutually_exclusive_options = parser.add_mutually_exclusive_group(required=True)
+mutually_exclusive_options.add_argument('--model_series', metavar='model', type=int,
+	choices=[1,2,3,4,5,6,7,8,9,10], help='Choose model series'
+)
+mutually_exclusive_options.add_argument('--resume_model', metavar='model file', type=str,
+	help='Saved model to resume training from'
+)
+
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
-parser.add_argument('--epochs', metavar='e', type=int, required=False, default=50, help='Epochs')
+parser.add_argument('--epochs', type=int, required=False, default=50, help='Epochs')
+parser.add_argument('--resume_from_epoch', type=int, required=False, default=None, help='Resume from this epoch (0 index). Required for resumption')
 parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.0001, help='Learning rate')
 parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
 parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
@@ -18,13 +26,15 @@ parser.add_argument('--val_split', type=float, required=False, default=0.1, help
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
 parser.add_argument('--checkpoint', required=False, action='store_true', help='Whether to checkpoint model or not')
 parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5', help='File to checkpoint to')
-parser.add_argument('--val_', required=False, action='store_true', help='Whether to checkpoint model or not')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--tb_rate', type=int, required=False, default=1000, help='Tensorboard update rate')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
 
 # parse sys.argv
 args = parser.parse_args()
+
+if args.resume_model is not None and args.resume_from_epoch is None:
+	parser.error('--resume_model requires --resume_from_epoch to be stated')
 
 import utils
 import models
@@ -33,26 +43,29 @@ from keras import callbacks
 '''Point of Comparison for Image Augmentation'''
 # configure batch size and retrieve one batch of images
 
-if args.model_series == 1:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelOne, args, coarse_too=True)
-elif args.model_series == 2:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelTwo, args)
-elif args.model_series == 3:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelThree, args, coarse_too=True)
-elif args.model_series == 4:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelFour, args, coarse_too=True)
-elif args.model_series == 5:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelFive, args)
-elif args.model_series == 6:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelSix, args)
-elif args.model_series == 7:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelSeven, args)
-elif args.model_series == 8:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelEight, args)
-elif args.model_series == 9:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelNine, args)
-elif args.model_series == 10:
-	dataset, gen, model = utils.prepare_for_model(models.TrialModelTen, args)
+if args.model_series is not None:
+	if args.model_series == 1:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelOne, args, coarse_too=True)
+	elif args.model_series == 2:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelTwo, args)
+	elif args.model_series == 3:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelThree, args, coarse_too=True)
+	elif args.model_series == 4:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelFour, args, coarse_too=True)
+	elif args.model_series == 5:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelFive, args)
+	elif args.model_series == 6:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelSix, args)
+	elif args.model_series == 7:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelSeven, args)
+	elif args.model_series == 8:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelEight, args)
+	elif args.model_series == 9:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelNine, args)
+	elif args.model_series == 10:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelTen, args)
+else:
+	dataset, gen, model = utils.prepare_for_model(None, args)
 
 model.summary(line_length=150)
 
@@ -75,11 +88,13 @@ try:
 	else:
 		validation_data=(dataset['X']['val'], dataset['y_fine']['val'])
 
+	initial_epoch = args.resume_from_epoch if args.resume_from_epoch is not None else 0
+	print(initial_epoch)
+
 	train_history = model.fit_generator(gen, epochs=args.epochs,
 		steps_per_epoch=dataset['X']['train'].shape[0] // args.batch_size,
 		validation_data=validation_data, verbose=1, max_queue_size=10,
-		workers=args.workers, callbacks=cbs)
-
+		workers=args.workers, callbacks=cbs, initial_epoch=initial_epoch)
 except KeyboardInterrupt:
 	print('Keyboard interrupted during training...')
 finally:

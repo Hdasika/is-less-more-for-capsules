@@ -310,7 +310,7 @@ def TrialModelNine(args):
 	################## convolutional ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid',
-															  activation='relu', data_format='channels_last', name='conv')(input)
+															  kernel_initializer=args.init, activation='relu', data_format='channels_last', name='conv')(input)
 
 	################# primary caps ########################
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=32,

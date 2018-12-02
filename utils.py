@@ -1,10 +1,12 @@
 import tensorflow as tf
 import numpy as np
+import losses
 from keras import optimizers, metrics
+from keras.models import load_model
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-import losses
+from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer
 
 def convert_rgb_to_gray(images):
   return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
@@ -71,24 +73,37 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 				break
 
 def prepare_for_model(model_fn, args, coarse_too=False):
+	if args.resume_model is None:
+		model = model_fn(args)
+		opt = optimizers.Adam(lr=args.lr, decay=1e-6)
+		if args.loss == 'cc':
+			loss = 'categorical_crossentropy'
+		elif args.loss == 'margin':
+			loss = losses.margin_loss(downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin)
+		elif args.loss == 'seg_margin':
+			loss = losses.seg_margin_loss()
+
+		if coarse_too:
+			loss_weights = [args.super_loss_weight, args.sub_loss_weight]
+			model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
+		else:
+			model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss)
+	else:
+		model = load_model(args.resume_model, custom_objects={
+			'CoupledConvCapsule': CoupledConvCapsule,
+			'CapsMaxPool': CapsMaxPool,
+			'CapsuleNorm': CapsuleNorm,
+			'CapsuleLayer': CapsuleLayer
+		})
+		if len(model.outputs) == 2:
+			# coarse_too was given for this model so set it to True here
+			coarse_too = True
+
 	dataset = get_cifar100_dataset(args, coarse_too)
 	datagen = ImageDataGenerator(rescale=1./255)
 	# fit on X
 	# datagen.fit(dataset[0][0])
 	gen = create_data_generator(datagen, dataset['X']['train'], dataset['y_fine']['train'],
 								Y_coarse=dataset['y_coarse']['train'], batch_size=args.batch_size)
-	model = model_fn(args)
-	opt = optimizers.Adam(lr=args.lr, decay=1e-6)
-	if args.loss == 'cc':
-		loss = 'categorical_crossentropy'
-	elif args.loss == 'margin':
-		loss = losses.margin_loss(downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin)
-	elif args.loss == 'seg_margin':
-		loss = losses.seg_margin_loss()
 
-	if coarse_too:
-		loss_weights = [args.super_loss_weight, args.sub_loss_weight]
-		model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss, loss_weights=loss_weights)
-	else:
-		model.compile(optimizer=opt, metrics=[metrics.categorical_accuracy], loss=loss)
 	return dataset, gen, model
