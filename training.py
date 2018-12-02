@@ -1,7 +1,7 @@
 import argparse
 
 parser = argparse.ArgumentParser(description='CMPT726 Project')
-parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9], help='Choose model series')
+parser.add_argument('--model_series', metavar='model', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10], help='Choose model series')
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
 parser.add_argument('--epochs', metavar='e', type=int, required=False, default=50, help='Epochs')
@@ -51,7 +51,8 @@ elif args.model_series == 8:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelEight, args)
 elif args.model_series == 9:
 	dataset, gen, model = utils.prepare_for_model(models.TrialModelNine, args)
-
+elif args.model_series == 10:
+	dataset, gen, model = utils.prepare_for_model(models.TrialModelTen, args)
 
 model.summary(line_length=150)
 
@@ -59,7 +60,7 @@ try:
 	cbs = []
 
 	if args.tensorboard:
-		print(f'Will record for tensorboard to {args.tb_dir}')
+		print('Will record for tensorboard to {tb_dir}'.format(tb_dir=args.tb_dir))
 		tb = callbacks.TensorBoard(log_dir=args.tb_dir, write_graph=False, write_grads=True,
 					histogram_freq=1, batch_size=args.batch_size, update_freq=args.tb_rate)
 		cbs.append(tb)

@@ -14,7 +14,7 @@ class CoupledConvCapsule(Layer):
 		strides=(2,2),
 		padding='same',
 		filter_initializer='he_normal',
-		routing=3,
+		routings=3,
 		**kwargs
 	):
 		"""Coupled convolutional capsule
@@ -44,8 +44,8 @@ class CoupledConvCapsule(Layer):
 		:type padding: str, optional
 		:param filter_initializer: Filter initializer, defaults to 'he_normal'
 		:type filter_initializer: str, optional
-		:param routing: Number of routing iterations, defaults to 3
-		:type routing: int, optional
+		:param routings: Number of routings iterations, defaults to 3
+		:type routings: int, optional
 		:return: self
 		:rtype: CoupledConvCapsule
 		"""
@@ -55,7 +55,7 @@ class CoupledConvCapsule(Layer):
 		self.num_caps_instantiations = num_caps_instantiations
 		self.filter_initializer = filter_initializer
 		self.padding = padding
-		self.routing = routing
+		self.routings = routings
 		super(CoupledConvCapsule, self).__init__(**kwargs)
 	
 	def build(self, input_shape):
@@ -71,7 +71,10 @@ class CoupledConvCapsule(Layer):
 			dtype=tf.float32, size=self.input_num_capsule_types, element_shape=tf.TensorShape(weight_shape)
 		)
 		for i in range(self.input_num_capsule_types):
-			weights = self.add_weight(name=f'coupled_conv_caps_kernel_{i}', shape=weight_shape, initializer=self.filter_initializer)
+			weights = self.add_weight(
+				name='coupled_conv_caps_kernel_{i}'.format(i=i),
+				shape=weight_shape, initializer=self.filter_initializer
+			)
 			self.weights_per_capsule_type = self.weights_per_capsule_type.write(i, weights)
 
 		self.bias = self.add_weight(
@@ -112,19 +115,6 @@ class CoupledConvCapsule(Layer):
 		caps_channel_first_input = K.permute_dimensions(input, (3, 0, 1, 2, 4))
 		caps_channel_first_dynamic_shape = K.shape(caps_channel_first_input)
 
-		# input_channels_batch = K.reshape(caps_channel_first_input, [
-		# 	caps_channel_first_input[0] * caps_channel_first_input[1],
-		# 	self.input_height,
-		# 	self.input_width,
-		# 	self.input_num_caps_instantiations
-		# ])
-		# convoluted_input = K.conv2d(
-		# 	input_channels_batch,
-		# 	kernel=broadcasted_weights,
-		# 	strides=self.strides,
-		# 	padding=self.padding,
-		# 	data_format='channels_last'
-		# )
 		complete_convolution = tf.TensorArray(
 			dtype=tf.float32, size=self.input_num_capsule_types
 		)
@@ -162,7 +152,7 @@ class CoupledConvCapsule(Layer):
 				num_dims=6,
 				input_dim=self.input_num_capsule_types,
 				output_dim=self.num_capsule_types,
-				num_routing=self.routing)
+				num_routing=self.routings)
 
 		return activations	
 
@@ -190,7 +180,7 @@ class CoupledConvCapsule(Layer):
 			'strides': self.strides,
 			'padding': self.padding,
 			'filter_initializer': self.filter_initializer,
-			'routing': self.routing,
+			'routings': self.routings,
 		}
 		base_config = super(CoupledConvCapsule, self).get_config()
 		return dict(list(base_config.items()) + list(config.items()))
