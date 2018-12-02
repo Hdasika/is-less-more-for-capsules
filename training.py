@@ -17,7 +17,7 @@ parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.
 parser.add_argument('--super_loss_weight', metavar='sup_w', type=float, required=False, default=0.2, help='Loss weight for superclass')
 parser.add_argument('--sub_loss_weight', metavar='sub_w', type=float, required=False, default=0.8, help='Loss weight for subclass')
 parser.add_argument('--gray', required=False, action='store_true', help='Turn images to RGB first or not')
-parser.add_argument('--init', required=False, type=str, default='he_normal', choices=['glorot_uniform','he_normal'], help='Kernel initializers')
+parser.add_argument('--init', required=False, type=str, default='he_normal', choices=['glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform'], help='Kernel initializers')
 parser.add_argument('--loss', required=False, type=str, choices=['cc', 'margin', 'seg_margin'], default='margin', help='Loss function to use')
 parser.add_argument('--margin_downweight', required=False, type=float, default=0.5, help='Margin loss downweight - 0 <= downweight <= 1')
 parser.add_argument('--pos_margin', required=False, type=float, default=0.9, help='Positive margin - 0 <= pos_margin <= 1')
