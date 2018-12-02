@@ -181,15 +181,22 @@ def TrialModelFive(args):
 
 	################## normal convolution ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
-	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_1')(input)
-	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_2')(conv_1)
+	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_1')(input)
+	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_2')(conv_1)
 	max_pool_1 = layers.MaxPool2D(pool_size=3, strides=2, padding='same', name='max_pool_1')(conv_2)
-	conv_3 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_3')(max_pool_1)
-	conv_4 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu', data_format='channels_last', name='conv_4')(conv_3)
+	conv_3 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_3')(max_pool_1)
+	conv_4 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_4')(conv_3)
 	max_pool_2 = layers.MaxPool2D(pool_size=3, strides=2, padding='same', name='max_pool_2')(conv_4)
-	conv_5 = layers.Conv2D(filters=192, kernel_size=3, padding='valid', activation='relu', data_format='channels_last', name='conv_5')(max_pool_2)
-	conv_6 = layers.Conv2D(filters=192, kernel_size=1, padding='same', activation='relu', data_format='channels_last', name='conv_6')(conv_5)
-	conv_7 = layers.Conv2D(filters=10, kernel_size=1, padding='same', activation='relu', data_format='channels_last', name='conv_7')(conv_6)
+	conv_5 = layers.Conv2D(filters=192, kernel_size=3, padding='valid', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_5')(max_pool_2)
+	conv_6 = layers.Conv2D(filters=192, kernel_size=1, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_6')(conv_5)
+	conv_7 = layers.Conv2D(filters=10, kernel_size=1, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_7')(conv_6)
 	avg_pool = layers.GlobalAveragePooling2D(data_format='channels_last', name='avg_pool')(conv_7)
 	subclass_out = layers.Dense(100, activation='softmax', name='subclass_out')(avg_pool)
 	#############################################################
@@ -306,12 +313,12 @@ def TrialModelNine(args):
 															  activation='relu', data_format='channels_last', name='conv')(input)
 
 	################# primary caps ########################
-	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=16, n_channels=32,
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=32,
 									 kernel_size=9, strides=2, padding='valid', initializer=args.init, to_flatten=True)
 	#######################################################
 
 	# ####################### end layer predictions ###########################
-	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=32, routings=3,
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=24, routings=3,
 									 kernel_initializer=args.init, name='subclass_prediction_caps')(primary_caps)
 	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
 	# ############################################################
@@ -353,5 +360,5 @@ def TrialModelTen(args):
 	return model
 
 if __name__ == "__main__":
-	model = TrialModelTen(SimpleNamespace(gray=False, init='glorot_uniform'))
+	model = TrialModelNine(SimpleNamespace(gray=False, init='glorot_uniform'))
 	model.summary()

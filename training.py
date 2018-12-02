@@ -17,7 +17,7 @@ parser.add_argument('--neg_margin', required=False, type=float, default=0.1, hel
 parser.add_argument('--val_split', type=float, required=False, default=0.1, help='Validation split')
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
 parser.add_argument('--checkpoint', required=False, action='store_true', help='Whether to checkpoint model or not')
-parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_loss:.2f}.hdf5', help='File to checkpoint to')
+parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5', help='File to checkpoint to')
 parser.add_argument('--val_', required=False, action='store_true', help='Whether to checkpoint model or not')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--tb_rate', type=int, required=False, default=1000, help='Tensorboard update rate')
@@ -65,7 +65,8 @@ try:
 					histogram_freq=1, batch_size=args.batch_size, update_freq=args.tb_rate)
 		cbs.append(tb)
 	if args.checkpoint:
-		checkpointer = callbacks.ModelCheckpoint(args.checkpoint_file, monitor='val_acc',
+		print('Will checkpoint best model... checkpoint model name format is {cpfile}'.format(cpfile=args.checkpoint_file))
+		checkpointer = callbacks.ModelCheckpoint(args.checkpoint_file, monitor='val_categorical_accuracy',
 					verbose=1, save_best_only=True)
 		cbs.append(checkpointer)
 	
@@ -75,7 +76,7 @@ try:
 		validation_data=(dataset['X']['val'], dataset['y_fine']['val'])
 
 	train_history = model.fit_generator(gen, epochs=args.epochs,
-		steps_per_epoch=dataset['X']['train'].shape[0] / args.batch_size,
+		steps_per_epoch=dataset['X']['train'].shape[0] // args.batch_size,
 		validation_data=validation_data, verbose=1, max_queue_size=10,
 		workers=args.workers, callbacks=cbs)
 
