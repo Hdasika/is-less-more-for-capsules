@@ -56,7 +56,7 @@ class CoupledConvCapsule(Layer):
 		self.filter_initializer = filter_initializer
 		self.padding = padding
 		self.routing = routing
-		super().__init__(**kwargs)
+		super(CoupledConvCapsule, self).__init__(**kwargs)
 	
 	def build(self, input_shape):
 		assert len(input_shape) == 5, "Input shape is incorrect, should be "\
@@ -181,3 +181,16 @@ class CoupledConvCapsule(Layer):
 			stride=self.strides[1]
 		)
 		return (input_shape[0], convolved_height, convolved_width, self.num_capsule_types, self.num_caps_instantiations)
+	
+	def get_config(self):
+		config = {
+			'num_capsule_types': self.num_capsule_types,
+			'num_caps_instantiations': self.num_caps_instantiations,
+			'filter_size': self.filter_size,
+			'strides': self.strides,
+			'padding': self.padding,
+			'filter_initializer': self.filter_initializer,
+			'routing': self.routing,
+		}
+		base_config = super(CoupledConvCapsule, self).get_config()
+		return dict(list(base_config.items()) + list(config.items()))

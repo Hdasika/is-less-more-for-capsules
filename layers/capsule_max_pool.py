@@ -47,7 +47,7 @@ class CapsMaxPool(Layer):
 
   def build(self, input_shape):
     # do nothing because there are no weights during pooling
-    super().build(input_shape)
+    super(CapsMaxPool, self).build(input_shape)
 
   def call(self, input):
     """Capsule max pool call
@@ -113,3 +113,8 @@ class CapsMaxPool(Layer):
     height = conv_output_length(height, self.pool_size[1], self.padding, self.strides[1])
     width = conv_output_length(width, self.pool_size[2], self.padding, self.strides[2])
     return (input_shape[0], height, width, input_shape[-2], input_shape[-1])
+  
+  def get_config(self):
+    config = {'pool_size': self.pool_size[1:3], 'strides': self.strides[1:3]}
+    base_config = super(CapsMaxPool, self).get_config()
+    return dict(list(base_config.items()) + list(config.items()))
