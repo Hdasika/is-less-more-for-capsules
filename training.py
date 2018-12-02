@@ -16,6 +16,9 @@ parser.add_argument('--pos_margin', required=False, type=float, default=0.9, hel
 parser.add_argument('--neg_margin', required=False, type=float, default=0.1, help='Negative margin - 0 <= neg_margin <= 1')
 parser.add_argument('--val_split', type=float, required=False, default=0.1, help='Validation split')
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
+parser.add_argument('--checkpoint', required=False, action='store_true', help='Whether to checkpoint model or not')
+parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_loss:.2f}.hdf5', help='File to checkpoint to')
+parser.add_argument('--val_', required=False, action='store_true', help='Whether to checkpoint model or not')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--tb_rate', type=int, required=False, default=1000, help='Tensorboard update rate')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
@@ -60,6 +63,10 @@ try:
 		tb = callbacks.TensorBoard(log_dir=args.tb_dir, write_graph=False, write_grads=True,
 					histogram_freq=1, batch_size=args.batch_size, update_freq=args.tb_rate)
 		cbs.append(tb)
+	if args.checkpoint:
+		checkpointer = callbacks.ModelCheckpoint(args.checkpoint_file, monitor='val_acc',
+					verbose=1, save_best_only=True)
+		cbs.append(checkpointer)
 	
 	if dataset['y_coarse']['val'] is not None:
 		validation_data=(dataset['X']['val'], [dataset['y_coarse']['val'], dataset['y_fine']['val']])
