@@ -91,7 +91,7 @@ class Mask(layers.Layer):
 
 class ConvCapsuleLayer(layers.Layer):
     def __init__(self, kernel_size, num_capsule, num_atoms, strides=1, padding='same', routings=3,
-                 kernel_initializer='he_normal', **kwargs):
+                 kernel_initializer='he_normal', squash=True, **kwargs):
         super(ConvCapsuleLayer, self).__init__(**kwargs)
         self.kernel_size = kernel_size
         self.num_capsule = num_capsule
@@ -100,6 +100,8 @@ class ConvCapsuleLayer(layers.Layer):
         self.padding = padding
         self.routings = routings
         self.kernel_initializer = initializers.get(kernel_initializer)
+        # whether to apply the squashing operation or not
+        self.squash = squash
 
     def build(self, input_shape):
         assert len(input_shape) == 5, "The input Tensor should have shape=[None, input_height, input_width," \
@@ -151,7 +153,8 @@ class ConvCapsuleLayer(layers.Layer):
             num_dims=6,
             input_dim=self.input_num_capsule,
             output_dim=self.num_capsule,
-            num_routing=self.routings)
+            num_routing=self.routings,
+            squash=self.squash)
 
         return activations
 
@@ -177,7 +180,8 @@ class ConvCapsuleLayer(layers.Layer):
             'strides': self.strides,
             'padding': self.padding,
             'routings': self.routings,
-            'kernel_initializer': initializers.serialize(self.kernel_initializer)
+            'kernel_initializer': initializers.serialize(self.kernel_initializer),
+            'squash': self.squash
         }
         base_config = super(ConvCapsuleLayer, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
@@ -303,7 +307,7 @@ class DeconvCapsuleLayer(layers.Layer):
 
 
 def update_routing(votes, biases, logit_shape, num_dims, input_dim, output_dim,
-                    num_routing):
+                    num_routing, squash=True):
     if num_dims == 6:
         votes_t_shape = [5, 0, 1, 2, 3, 4]
         r_t_shape = [1, 2, 3, 4, 5, 0]
@@ -323,7 +327,7 @@ def update_routing(votes, biases, logit_shape, num_dims, input_dim, output_dim,
         preactivate_unrolled = route * votes_trans
         preact_trans = tf.transpose(preactivate_unrolled, r_t_shape)
         preactivate = tf.reduce_sum(preact_trans, axis=1) + biases
-        activation = _squash(preactivate)
+        activation = _squash(preactivate) if squash else preactivate
         activations = activations.write(i, activation)
         act_3d = K.expand_dims(activation, 1)
         tile_shape = np.ones(num_dims, dtype=np.int32).tolist()
