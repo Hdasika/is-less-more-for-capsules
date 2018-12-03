@@ -366,23 +366,22 @@ def TrialModelEleven(args):
 	################## convolutional caps ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
 	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', name='convolution')(input)
-	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=32,
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=24,
 									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
 	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=28, num_atoms=12, strides=1,
 									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
-	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=24, num_atoms=12, strides=2,
+	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=20, num_atoms=12, strides=2,
 									 padding='same', routings=3, name='caps_conv_stride2_1')(caps_conv_1)
-	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=16, num_atoms=24, strides=1,
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=20, strides=1,
 									 padding='same', routings=3, name='caps_conv_2')(caps_conv_stride2_1)
-	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=24, strides=2,
+	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=10, num_atoms=20, strides=2,
 									 padding='same', routings=3, name='caps_conv_stride2_2')(caps_conv_2)
-
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=28, strides=1,
-									 padding='valid', routings=1, name='caps_conv_3')(caps_conv_stride2_2)
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=8, num_atoms=24, strides=1,
+									 padding='valid', routings=3, name='caps_conv_3')(caps_conv_stride2_2)
 	############################################################
 
 	####################### end layer predictions ###########################
-	flatten_caps_conv_3 = layers.Reshape(target_shape=(-1, 28), name='flatten_caps_conv_3')(caps_conv_3)
+	flatten_caps_conv_3 = layers.Reshape(target_shape=(-1, 24), name='flatten_caps_conv_3')(caps_conv_3)
 	subclass_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=28, name='subclass_caps')(flatten_caps_conv_3)
 	subclass_out = caps.Length(name='subclass_out')(subclass_caps)
 	############################################################
