@@ -360,14 +360,12 @@ def TrialModelTen(args):
 	return model
 
 def TrialModelEleven(args):
-	# Like trial model six but with much smaller number of channels
-	# there seems to be a bug with keras and my implementation of capsule max pooling
-	# https://github.com/keras-team/keras/issues/11753
-	# so we go with all convolutional
+	# Like trial model six but with much smaller number of channels (and also in reverse)
+	# Also using dense capsules at the end
 
 	################## convolutional caps ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
-	convolutional = layers.Conv2D(filters=256, kernel_size=3, strides=1, padding='valid', name='convolution')(input)
+	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', name='convolution')(input)
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=32,
 									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
 	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=28, num_atoms=12, strides=1,
@@ -381,16 +379,15 @@ def TrialModelEleven(args):
 
 	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=28, strides=1,
 									 padding='valid', routings=1, name='caps_conv_3')(caps_conv_stride2_2)
-	caps_conv_4 = ConvCapsuleLayer(kernel_size=1, num_capsule=100, num_atoms=32, strides=1,
-									 padding='valid', routings=1, name='caps_conv_4')(caps_conv_3)
 	############################################################
 
 	####################### end layer predictions ###########################
-	caps_norm = CapsuleNorm(name='caps_norm')(caps_conv_4)
-	superclass_out = layers.GlobalAveragePooling2D(data_format='channels_last', name='superclass_out')(caps_norm)
+	flatten_caps_conv_3 = layers.Reshape(target_shape=(-1, 28), name='flatten_caps_conv_3')(caps_conv_3)
+	subclass_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=28, name='subclass_caps')(flatten_caps_conv_3)
+	subclass_out = caps.Length(name='subclass_out')(subclass_caps)
 	############################################################
 
-	model = models.Model(inputs=input, outputs=superclass_out)
+	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
 
