@@ -399,7 +399,7 @@ def TrialModelTwelve(args):
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=24,
 									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
 
-	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=28, num_atoms=12, strides=1,
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=22, num_atoms=12, strides=1,
 									 padding='same', routings=3, squash=False, name='caps_conv_1')(primary_caps)
 	prelu_caps_conv_1 = layers.PReLU(alpha_initializer=initializers.constant(0.5),
 		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_1')(caps_conv_1)
