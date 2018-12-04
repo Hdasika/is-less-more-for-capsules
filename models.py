@@ -372,11 +372,11 @@ def TrialModelEleven(args):
 									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
 	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=20, num_atoms=12, strides=2,kernel_initializer=args.init,
 									 padding='same', routings=3, name='caps_conv_stride2_1')(caps_conv_1)
-	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=20, strides=1,kernel_initializer=args.init
+	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=20, strides=1,kernel_initializer=args.init,
 									 padding='same', routings=3, name='caps_conv_2')(caps_conv_stride2_1)
-	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=10, num_atoms=20, strides=2,kernel_initializer=args.init
+	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=10, num_atoms=20, strides=2,kernel_initializer=args.init,
 									 padding='same', routings=3, name='caps_conv_stride2_2')(caps_conv_2)
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=24, strides=1,kernel_initializer=args.init
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=24, strides=1,kernel_initializer=args.init,
 									 padding='valid', routings=3, name='caps_conv_3')(caps_conv_stride2_2)
 	############################################################
 
