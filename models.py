@@ -368,7 +368,7 @@ def TrialModelEleven(args):
 	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', name='convolution')(input)
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=8, n_channels=24,
 									 kernel_size=3, strides=1, padding='valid', initializer=args.init)
-	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=28, num_atoms=12, strides=1,
+	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=22, num_atoms=12, strides=1,
 									 padding='same', routings=3, name='caps_conv_1')(primary_caps)
 	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=20, num_atoms=12, strides=2,
 									 padding='same', routings=3, name='caps_conv_stride2_1')(caps_conv_1)
@@ -376,7 +376,7 @@ def TrialModelEleven(args):
 									 padding='same', routings=3, name='caps_conv_2')(caps_conv_stride2_1)
 	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=10, num_atoms=20, strides=2,
 									 padding='same', routings=3, name='caps_conv_stride2_2')(caps_conv_2)
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=8, num_atoms=24, strides=1,
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=24, strides=1,
 									 padding='valid', routings=3, name='caps_conv_3')(caps_conv_stride2_2)
 	############################################################
 
@@ -401,26 +401,28 @@ def TrialModelTwelve(args):
 
 	caps_conv_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=22, num_atoms=12, strides=1,
 									 padding='same', routings=3, squash=False, name='caps_conv_1')(primary_caps)
-	prelu_caps_conv_1 = layers.PReLU(alpha_initializer=initializers.constant(0.5),
+	prelu_caps_conv_1 = layers.PReLU(alpha_initializer=initializers.constant(0.25),
 		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_1')(caps_conv_1)
 
 	caps_conv_stride2_1 = ConvCapsuleLayer(kernel_size=3, num_capsule=20, num_atoms=12, strides=2,
 									 padding='same', routings=3, squash=False, name='caps_conv_stride2_1')(prelu_caps_conv_1)
-	prelu_caps_conv_stride2_1 = layers.PReLU(alpha_initializer=initializers.constant(0.5),
+	prelu_caps_conv_stride2_1 = layers.PReLU(alpha_initializer=initializers.constant(0.25),
 		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_stride2_1')(caps_conv_stride2_1)
 
 	caps_conv_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=12, num_atoms=20, strides=1,
 									 padding='same', routings=3, squash=False, name='caps_conv_2')(prelu_caps_conv_stride2_1)
-	prelu_caps_conv_2 = layers.PReLU(alpha_initializer=initializers.constant(0.5),
+	prelu_caps_conv_2 = layers.PReLU(alpha_initializer=initializers.constant(0.25),
 		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_2')(caps_conv_2)
 
 	caps_conv_stride2_2 = ConvCapsuleLayer(kernel_size=3, num_capsule=10, num_atoms=20, strides=2,
 									 padding='same', routings=3, squash=False, name='caps_conv_stride2_2')(prelu_caps_conv_2)
-	prelu_caps_conv_stride2_2 = layers.PReLU(alpha_initializer=initializers.constant(0.5),
+	prelu_caps_conv_stride2_2 = layers.PReLU(alpha_initializer=initializers.constant(0.25),
 		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_stride2_2')(caps_conv_stride2_2)
 
-	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=8, num_atoms=24, strides=1,
-									 padding='valid', routings=3, name='caps_conv_3')(prelu_caps_conv_stride2_2)
+	caps_conv_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=10, num_atoms=24, strides=1,
+									 padding='valid', routings=3, squash=False, name='caps_conv_3')(prelu_caps_conv_stride2_2)
+	prelu_caps_conv_3 = layers.PReLU(alpha_initializer=initializers.constant(0.25),
+		alpha_constraint=constraints.NonNeg, shared_axes=[1,2], name='prelu_caps_conv_3')(caps_conv_3)
 	############################################################
 
 	####################### end layer predictions ###########################
