@@ -66,6 +66,8 @@ if args.model_series is not None:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelTen, args)
 	elif args.model_series == 11:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelEleven, args)
+	elif args.model_series == 11:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelTwelve, args)
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 
