@@ -3,7 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='CMPT726 Project')
 mutually_exclusive_options = parser.add_mutually_exclusive_group(required=True)
 mutually_exclusive_options.add_argument('--model_series', metavar='model', type=int,
-	choices=[1,2,3,4,5,6,7,8,9,10,11,12], help='Choose model series'
+	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13], help='Choose model series'
 )
 mutually_exclusive_options.add_argument('--resume_model', metavar='model file', type=str,
 	help='Saved model to resume training from'
