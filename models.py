@@ -390,7 +390,7 @@ def TrialModelEleven(args):
 	return model
 
 def TrialModelTwelve(args):
-	# Like trial model eleven but with much smaller number of channels
+	# Like trial model thirteen  but with much smaller number of channels
 	# But with non-squashing convolutional capsules and a PReLU activations in between
 
 	################## convolutional caps ######################
@@ -436,8 +436,8 @@ def TrialModelTwelve(args):
 
 
 def TrialModelThirteen(args):
-	# Like trial model eleven but with much smaller number of channels
-	# But with non-squashing convolutional capsules and a PReLU activations in between
+	#  trial model thirteen but without Prelu
+
 
 	################## convolutional caps ######################
 	input = layers.Input((32,32,3 if not args.gray else 1))
