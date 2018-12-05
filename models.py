@@ -550,7 +550,6 @@ def TrialModelSixteen(args):
 	reshaped_primary_caps = layers.Reshape(target_shape=(H.value, W.value, 12, 32), name='reshaped_primary_caps')(primary_caps)
 	conv_caps = ConvCapsuleLayer(kernel_size=9, num_capsule=16, num_atoms=18, strides=1, kernel_initializer=args.init,
 					padding='valid', routings=3, squash=False, individual_kernels_per_type=True, name='conv_caps')(reshaped_primary_caps)
-	print(conv_caps.shape)
 	#######################################################
 
 	# ####################### end layer predictions ###########################
