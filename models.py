@@ -502,6 +502,36 @@ def TrialModelFourteen(args):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
+def TrialModelFifteen(args):
+	# Similar to model fourteen but with the convolutional kernel to be different across capsule types 
+
+	################## convolutional ######################
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid',
+															  kernel_initializer=args.init, activation='relu', data_format='channels_last', name='conv')(input)
+
+	################# primary caps ########################
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=32,
+									 kernel_size=9, strides=1, padding='valid', initializer=args.init, to_flatten=False)
+	#######################################################
+
+	################### convolutional capsule #############
+	_, H, W, _, _ = primary_caps.shape 
+	reshaped_primary_caps = layers.Reshape(target_shape=(H.value, W.value, 12, 32), name='reshaped_primary_caps')(primary_caps)
+	conv_caps = ConvCapsuleLayer(kernel_size=9, num_capsule=16, num_atoms=18, strides=1, kernel_initializer=args.init,
+					padding='valid', routings=3, individual_kernels_per_type=True, name='conv_caps')(reshaped_primary_caps)
+	#######################################################
+
+	# ####################### end layer predictions ###########################
+	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 18), name='reshaped_conv_caps')(conv_caps)
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=24, routings=3,
+									 kernel_initializer=args.init, name='subclass_prediction_caps')(reshaped_conv_caps)
+	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
+	# ############################################################
+
+	model = models.Model(inputs=input, outputs=subclass_out)
+	return model
+
 if __name__ == "__main__":
-	model = TrialModelFourteen(SimpleNamespace(gray=False, init='glorot_uniform'))
+	model = TrialModelFifteen(SimpleNamespace(gray=False, init='glorot_uniform'))
 	model.summary()

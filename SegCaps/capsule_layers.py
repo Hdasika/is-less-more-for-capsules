@@ -91,7 +91,7 @@ class Mask(layers.Layer):
 
 class ConvCapsuleLayer(layers.Layer):
     def __init__(self, kernel_size, num_capsule, num_atoms, strides=1, padding='same', routings=3,
-                 kernel_initializer='he_normal', squash=True, **kwargs):
+                 kernel_initializer='he_normal', squash=True, individual_kernels_per_type=False, **kwargs):
         super(ConvCapsuleLayer, self).__init__(**kwargs)
         self.kernel_size = kernel_size
         self.num_capsule = num_capsule
@@ -102,6 +102,7 @@ class ConvCapsuleLayer(layers.Layer):
         self.kernel_initializer = initializers.get(kernel_initializer)
         # whether to apply the squashing operation or not
         self.squash = squash
+        self.individual_kernels_per_type = individual_kernels_per_type 
 
     def build(self, input_shape):
         assert len(input_shape) == 5, "The input Tensor should have shape=[None, input_height, input_width," \
@@ -112,16 +113,54 @@ class ConvCapsuleLayer(layers.Layer):
         self.input_num_atoms = input_shape[4]
 
         # Transform matrix
-        self.W = self.add_weight(shape=[self.kernel_size, self.kernel_size,
-                                 self.input_num_atoms, self.num_capsule * self.num_atoms],
-                                 initializer=self.kernel_initializer,
-                                 name='W')
+        if self.individual_kernels_per_type:
+            weight_shape = [self.kernel_size, self.kernel_size, self.input_num_atoms, self.num_capsule * self.num_atoms]
+            self.weights_per_capsule_type = tf.TensorArray(
+                dtype=tf.float32, size=self.input_num_capsule, element_shape=tf.TensorShape(weight_shape)
+            )
+            for i in range(self.input_num_capsule):
+                weights = self.add_weight(
+                    name='W_{i}'.format(i=i),
+                    shape=weight_shape, initializer=self.kernel_initializer
+                )
+                self.weights_per_capsule_type = self.weights_per_capsule_type.write(i, weights)
+        else:
+            self.W = self.add_weight(shape=[self.kernel_size, self.kernel_size,
+                                    self.input_num_atoms, self.num_capsule * self.num_atoms],
+                                    initializer=self.kernel_initializer,
+                                    name='W')
 
         self.b = self.add_weight(shape=[1, 1, self.num_capsule, self.num_atoms],
                                  initializer=initializers.constant(0.1),
                                  name='b')
 
         self.built = True
+
+    def _indiv_convolution_body(self, i, input_over_capsule_types, convs):
+        """Convolution logic
+
+        Main body to run convolution. It's purpose is to be run on each capsule type
+        and running the convolution on the batched input per capsule type
+
+        :param i: An incrementing value (until number of capsule types)
+        :type i: tf.constant
+        :param input_over_capsule_types: Input over capsule types to convolve
+        :type input_over_capsule_types: tf.Tensor
+        :param convs: Convolutional result to fill in
+        :type convs: tf.TensorArray
+        """
+        weights = self.weights_per_capsule_type.read(i)
+        input_on_one_capsule_type = input_over_capsule_types[i]
+        # broadcast/copy filter
+        convoluted_input = K.conv2d(
+            input_on_one_capsule_type,
+            kernel=weights,
+            strides=(self.strides, self.strides),
+            padding=self.padding,
+            data_format='channels_last'
+        )
+        convs = convs.write(i, convoluted_input)
+        return (i + 1, input_over_capsule_types, convs)
 
     def call(self, input_tensor, training=None):
 
@@ -131,19 +170,35 @@ class ConvCapsuleLayer(layers.Layer):
             input_shape[0] * input_shape[1], self.input_height, self.input_width, self.input_num_atoms])
         input_tensor_reshaped.set_shape((None, self.input_height, self.input_width, self.input_num_atoms))
 
-        conv = K.conv2d(input_tensor_reshaped, self.W, (self.strides, self.strides),
-                        padding=self.padding, data_format='channels_last')
+        if self.individual_kernels_per_type:
+            indiv_conv = tf.TensorArray(
+                dtype=tf.float32, size=self.input_num_capsule
+            )
+            i = tf.constant(0)
+            _, _, indiv_conv = tf.while_loop(
+                cond = lambda i, weights, convs: i < self.input_num_capsule,
+                body = self._indiv_convolution_body,
+                loop_vars = [i, input_transposed, indiv_conv],
+                return_same_structure=False
+            )
+            conv = indiv_conv.stack()
+            _, _, conv_height, conv_width, _ = conv.get_shape()
+            votes_shape = K.shape(conv)
+            votes = K.reshape(conv, [input_shape[1], input_shape[0], votes_shape[2], votes_shape[3],
+                                    self.num_capsule, self.num_atoms])
+        else:
+            conv = K.conv2d(input_tensor_reshaped, self.W, (self.strides, self.strides),
+                            padding=self.padding, data_format='channels_last')
+            _, conv_height, conv_width, _ = conv.get_shape()
+            votes_shape = K.shape(conv)
+            votes = K.reshape(conv, [input_shape[1], input_shape[0], votes_shape[1], votes_shape[2],
+                                    self.num_capsule, self.num_atoms])
 
-        votes_shape = K.shape(conv)
-        _, conv_height, conv_width, _ = conv.get_shape()
-
-        votes = K.reshape(conv, [input_shape[1], input_shape[0], votes_shape[1], votes_shape[2],
-                                 self.num_capsule, self.num_atoms])
         votes.set_shape((None, self.input_num_capsule, conv_height.value, conv_width.value,
                          self.num_capsule, self.num_atoms))
 
         logit_shape = K.stack([
-            input_shape[1], input_shape[0], votes_shape[1], votes_shape[2], self.num_capsule])
+            input_shape[1], input_shape[0], conv_height.value, conv_width.value, self.num_capsule])
         biases_replicated = K.tile(self.b, [conv_height.value, conv_width.value, 1, 1])
 
         activations = update_routing(
@@ -181,7 +236,8 @@ class ConvCapsuleLayer(layers.Layer):
             'padding': self.padding,
             'routings': self.routings,
             'kernel_initializer': initializers.serialize(self.kernel_initializer),
-            'squash': self.squash
+            'squash': self.squash,
+            'individual_kernels_per_type': self.individual_kernels_per_type
         }
         base_config = super(ConvCapsuleLayer, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
