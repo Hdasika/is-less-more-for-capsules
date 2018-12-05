@@ -131,9 +131,12 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 			coarse_too = True
 
 	dataset = get_cifar100_dataset(args, coarse_too)
-	datagen = ImageDataGenerator(rescale=1./255)
-	# fit on X
-	# datagen.fit(dataset[0][0])
+	if args.rescale:
+		datagen = ImageDataGenerator(rescale=1./255)
+	elif args.normalize:
+		# fit on X
+		datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
+		datagen.fit(dataset['X']['train'])
 	gen = create_data_generator(datagen, dataset['X']['train'], dataset['y_fine']['train'],
 								Y_coarse=dataset['y_coarse']['train'], batch_size=args.batch_size)
 

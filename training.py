@@ -1,13 +1,16 @@
 import argparse
 
 parser = argparse.ArgumentParser(description='CMPT726 Project')
-mutually_exclusive_options = parser.add_mutually_exclusive_group(required=True)
-mutually_exclusive_options.add_argument('--model_series', metavar='model', type=int,
-	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], help='Choose model series'
+mutually_exclusive_model_options = parser.add_mutually_exclusive_group(required=True)
+mutually_exclusive_model_options.add_argument('--model_series', metavar='model', type=int,
+	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='Choose model series'
 )
-mutually_exclusive_options.add_argument('--resume_model', metavar='model file', type=str,
+mutually_exclusive_model_options.add_argument('--resume_model', metavar='model file', type=str,
 	help='Saved model to resume training from'
 )
+mutually_exclusive_data_options = parser.add_mutually_exclusive_group(required=True)
+mutually_exclusive_data_options.add_argument('--rescale', action='store_true', help='Rescale input')
+mutually_exclusive_data_options.add_argument('--normalize', action='store_true', help='Normalize input')
 
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
@@ -24,10 +27,10 @@ parser.add_argument('--pos_margin', required=False, type=float, default=0.9, hel
 parser.add_argument('--neg_margin', required=False, type=float, default=0.1, help='Negative margin - 0 <= neg_margin <= 1')
 parser.add_argument('--val_split', type=float, required=False, default=0.1, help='Validation split')
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
-parser.add_argument('--checkpoint', required=False, action='store_true', help='Whether to checkpoint model or not')
-parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5', help='File to checkpoint to')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--tb_rate', type=int, required=False, default=1000, help='Tensorboard update rate')
+parser.add_argument('--checkpoint', required=False, action='store_true', help='Whether to checkpoint model or not')
+parser.add_argument('--checkpoint_file', required=False, default='model.{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5', help='File to checkpoint to')
 parser.add_argument('--workers', metavar='w', type=int, required=False, default=1, help='Number of workers')
 
 # parse sys.argv
@@ -74,6 +77,8 @@ if args.model_series is not None:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelFourteen, args)
 	elif args.model_series == 15:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelFifteen, args)
+	elif args.model_series == 16:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelSixteen, args)
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 
