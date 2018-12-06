@@ -7,8 +7,10 @@ from keras.models import load_model
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length
+from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length, squash
 from losses import margin_loss, seg_margin_loss
+from SegCaps.capsule_layers import _squash
+from activations import non_saturating_squash
 
 def convert_rgb_to_gray(images):
   return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
@@ -124,7 +126,10 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 			'_margin_loss': margin_loss(
 				downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin
 			),
-			'_seg_margin_loss': seg_margin_loss()
+			'_seg_margin_loss': seg_margin_loss(),
+			'_squash': _squash,
+			'squash': squash,
+			'non_saturating_squash': non_saturating_squash
 		})
 		if len(model.outputs) == 2:
 			# coarse_too was given for this model so set it to True here

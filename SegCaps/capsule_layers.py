@@ -14,6 +14,11 @@ from keras import initializers, layers
 from keras.utils.conv_utils import conv_output_length, deconv_length
 import numpy as np
 
+def _squash(input_tensor):
+    norm = tf.norm(input_tensor, axis=-1, keepdims=True)
+    norm_squared = norm * norm
+    return (input_tensor / norm) * (norm_squared / (1 + norm_squared))
+
 class Length(layers.Layer):
     def __init__(self, num_classes, seg=True, **kwargs):
         super(Length, self).__init__(**kwargs)
@@ -91,7 +96,7 @@ class Mask(layers.Layer):
 
 class ConvCapsuleLayer(layers.Layer):
     def __init__(self, kernel_size, num_capsule, num_atoms, strides=1, padding='same', routings=3,
-                 kernel_initializer='he_normal', squash=True, individual_kernels_per_type=False, **kwargs):
+                 kernel_initializer='he_normal', squash=True, squash_activation=_squash, individual_kernels_per_type=False, **kwargs):
         super(ConvCapsuleLayer, self).__init__(**kwargs)
         self.kernel_size = kernel_size
         self.num_capsule = num_capsule
@@ -102,6 +107,7 @@ class ConvCapsuleLayer(layers.Layer):
         self.kernel_initializer = initializers.get(kernel_initializer)
         # whether to apply the squashing operation or not
         self.squash = squash
+        self.squash_activation = squash_activation
         self.individual_kernels_per_type = individual_kernels_per_type 
 
     def build(self, input_shape):
@@ -209,6 +215,7 @@ class ConvCapsuleLayer(layers.Layer):
             input_dim=self.input_num_capsule,
             output_dim=self.num_capsule,
             num_routing=self.routings,
+            squash_activation=self.squash_activation,
             squash=self.squash)
 
         return activations
@@ -237,6 +244,7 @@ class ConvCapsuleLayer(layers.Layer):
             'routings': self.routings,
             'kernel_initializer': initializers.serialize(self.kernel_initializer),
             'squash': self.squash,
+            'squash_activation': self.squash_activation,
             'individual_kernels_per_type': self.individual_kernels_per_type
         }
         base_config = super(ConvCapsuleLayer, self).get_config()
@@ -363,7 +371,7 @@ class DeconvCapsuleLayer(layers.Layer):
 
 
 def update_routing(votes, biases, logit_shape, num_dims, input_dim, output_dim,
-                    num_routing, squash=True):
+                    num_routing, squash_activation=_squash, squash=True):
     if num_dims == 6:
         votes_t_shape = [5, 0, 1, 2, 3, 4]
         r_t_shape = [1, 2, 3, 4, 5, 0]
@@ -383,7 +391,7 @@ def update_routing(votes, biases, logit_shape, num_dims, input_dim, output_dim,
         preactivate_unrolled = route * votes_trans
         preact_trans = tf.transpose(preactivate_unrolled, r_t_shape)
         preactivate = tf.reduce_sum(preact_trans, axis=1) + biases
-        activation = _squash(preactivate) if squash else preactivate
+        activation = squash_activation(preactivate) if squash else preactivate
         activations = activations.write(i, activation)
         act_3d = K.expand_dims(activation, 1)
         tile_shape = np.ones(num_dims, dtype=np.int32).tolist()
@@ -405,9 +413,3 @@ def update_routing(votes, biases, logit_shape, num_dims, input_dim, output_dim,
       swap_memory=True)
 
     return K.cast(activations.read(num_routing - 1), dtype='float32')
-
-
-def _squash(input_tensor):
-    norm = tf.norm(input_tensor, axis=-1, keepdims=True)
-    norm_squared = norm * norm
-    return (input_tensor / norm) * (norm_squared / (1 + norm_squared))

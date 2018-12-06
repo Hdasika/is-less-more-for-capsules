@@ -3,7 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='CMPT726 Project')
 mutually_exclusive_model_options = parser.add_mutually_exclusive_group(required=True)
 mutually_exclusive_model_options.add_argument('--model_series', metavar='model', type=int,
-	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='Choose model series'
+	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17], help='Choose model series'
 )
 mutually_exclusive_model_options.add_argument('--resume_model', metavar='model file', type=str,
 	help='Saved model to resume training from'
@@ -79,6 +79,9 @@ if args.model_series is not None:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelFifteen, args)
 	elif args.model_series == 16:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelSixteen, args)
+	elif args.model_series == 17:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelSeventeen, args)
+
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 

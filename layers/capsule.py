@@ -55,12 +55,13 @@ class CapsuleLayer(layers.Layer):
     :param routings: number of iterations for the routing algorithm
     """
     def __init__(self, num_capsule, dim_capsule, routings=3,
-                 kernel_initializer='glorot_uniform',
+                 kernel_initializer='glorot_uniform', squash_activation=squash,
                  **kwargs):
         super(CapsuleLayer, self).__init__(**kwargs)
         self.num_capsule = num_capsule
         self.dim_capsule = dim_capsule
         self.routings = routings
+        self.squash_activation = squash_activation
         self.kernel_initializer = initializers.get(kernel_initializer)
 
     def build(self, input_shape):
@@ -108,7 +109,7 @@ class CapsuleLayer(layers.Layer):
             # The first two dimensions as `batch` dimension,
             # then matmal: [input_num_capsule] x [input_num_capsule, dim_capsule] -> [dim_capsule].
             # outputs.shape=[None, num_capsule, dim_capsule]
-            outputs = squash(K.batch_dot(c, inputs_hat, [2, 2]))  # [None, 10, 16]
+            outputs = self.squash_activation(K.batch_dot(c, inputs_hat, [2, 2]))  # [None, 10, 16]
 
             if i < self.routings - 1:
                 # outputs.shape =  [None, num_capsule, dim_capsule]
@@ -128,13 +129,14 @@ class CapsuleLayer(layers.Layer):
         config = {
             'num_capsule': self.num_capsule,
             'dim_capsule': self.dim_capsule,
-            'routings': self.routings
+            'routings': self.routings,
+            'squash_activation': self.squash_activation
         }
         base_config = super(CapsuleLayer, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
 
-def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding, initializer, to_flatten=False, name='primarycap'):
+def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding, initializer, squash_activation=squash, to_flatten=False, name='primarycap'):
     """
     Apply Conv2D `n_channels` times and concatenate all capsules
     :param inputs: 4D tensor, shape=[None, width, height, channels]
@@ -153,4 +155,4 @@ def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding, i
       # reshape to 4D
       _, H, W, _ = output.shape
       output = layers.Reshape(target_shape=(H.value, W.value, n_channels, dim_capsule), name='primarycap_reshape')(output)
-    return layers.Lambda(squash, name=name)(output)
+    return layers.Lambda(squash_activation, name=name)(output)
