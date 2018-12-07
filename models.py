@@ -573,7 +573,7 @@ def TrialModelSeventeen(args):
 
 	################# primary caps ########################
 	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=32,
-									 kernel_size=9, strides=1, padding='valid', initializer=args.init, squash_activation=non_saturating_squash, to_flatten=False)
+									 kernel_size=9, strides=1, padding='valid', initializer=args.init, to_flatten=False)
 	#######################################################
 
 	################### convolutional capsule #############
@@ -586,7 +586,7 @@ def TrialModelSeventeen(args):
 	# ####################### end layer predictions ###########################
 	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 18), name='reshaped_conv_caps')(conv_caps)
 	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100, dim_capsule=24, routings=3,
-									 kernel_initializer=args.init, squash_activation=non_saturating_squash, name='subclass_prediction_caps')(reshaped_conv_caps)
+									 kernel_initializer=args.init, name='subclass_prediction_caps')(reshaped_conv_caps)
 	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
 	# ############################################################
 
