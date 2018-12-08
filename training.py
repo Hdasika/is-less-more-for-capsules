@@ -3,7 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='CMPT726 Project')
 mutually_exclusive_model_options = parser.add_mutually_exclusive_group(required=True)
 mutually_exclusive_model_options.add_argument('--model_series', metavar='model', type=int,
-	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17], help='Choose model series'
+	choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18], help='Choose model series'
 )
 mutually_exclusive_model_options.add_argument('--resume_model', metavar='model file', type=str,
 	help='Saved model to resume training from'
@@ -14,6 +14,7 @@ mutually_exclusive_data_options.add_argument('--normalize', action='store_true',
 
 parser.add_argument('--save_dest', metavar='dest', type=str, required=True, help='Save model destination')
 parser.add_argument('--batch_size', metavar='bs', type=int, required=False, default=8, help='Batch size')
+parser.add_argument('--dataset', type=str, required=False, default='cifar100', choices=['cifar10', 'cifar100'], help='Dataset to work on')
 parser.add_argument('--epochs', type=int, required=False, default=50, help='Epochs')
 parser.add_argument('--resume_from_epoch', type=int, required=False, default=None, help='Resume from this epoch (0 index). Required for resumption')
 parser.add_argument('--lr', metavar='lr', type=float, required=False, default=0.0001, help='Learning rate')
@@ -81,7 +82,8 @@ if args.model_series is not None:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelSixteen, args)
 	elif args.model_series == 17:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelSeventeen, args)
-
+	elif args.model_series == 18:
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelEighteen, args)
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 

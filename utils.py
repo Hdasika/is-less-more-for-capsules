@@ -2,21 +2,23 @@ import tensorflow as tf
 import numpy as np
 import losses
 from threading import Lock
-from keras import optimizers, metrics
+from keras import optimizers, metrics, activations
 from keras.models import load_model
 from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length, squash
+from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length
 from losses import margin_loss, seg_margin_loss
-from SegCaps.capsule_layers import _squash
-from activations import non_saturating_squash
 
 def convert_rgb_to_gray(images):
   return (0.2125 * images[:,:,:,:1]) + (0.7154 * images[:,:,:,1:2]) + (0.0721 * images[:,:,:,-1:])
 
-def get_cifar100_dataset(args, coarse_too=False):
-	(X_train, y_train_fine), (X_test, y_test_fine) = tf.keras.datasets.cifar100.load_data(label_mode='fine')
+def get_dataset(args, coarse_too=False):
+	if args.dataset == 'cifar100':
+		(X_train, y_train_fine), (X_test, y_test_fine) = tf.keras.datasets.cifar100.load_data(label_mode='fine')
+	else:
+		(X_train, y_train_fine), (X_test, y_test_fine) = tf.keras.datasets.cifar10.load_data()
+
 	if args.gray:
 		# make grayscale
 		X_train = convert_rgb_to_gray(X_train)
@@ -37,9 +39,9 @@ def get_cifar100_dataset(args, coarse_too=False):
 			X_train, y_train_fine, train_size=1 - args.val_split, test_size=args.val_split, stratify=y_train_fine
 		)
 	
-	y_train_fine = to_categorical(y_train_fine, num_classes=100)
-	y_val_fine = to_categorical(y_val_fine, num_classes=100)
-	y_test_fine = to_categorical(y_test_fine, num_classes=100)
+	y_train_fine = to_categorical(y_train_fine, num_classes=100 if args.dataset == 'cifar100' else 10)
+	y_val_fine = to_categorical(y_val_fine, num_classes=100 if args.dataset == 'cifar100' else 10)
+	y_test_fine = to_categorical(y_test_fine, num_classes=100 if args.dataset == 'cifar100' else 10)
 
 	return {
 		'X': {
@@ -127,15 +129,16 @@ def prepare_for_model(model_fn, args, coarse_too=False):
 				downweight=args.margin_downweight, pos_margin=args.pos_margin, neg_margin=args.neg_margin
 			),
 			'_seg_margin_loss': seg_margin_loss(),
-			'_squash': _squash,
-			'squash': squash,
-			'non_saturating_squash': non_saturating_squash
 		})
 		if len(model.outputs) == 2:
 			# coarse_too was given for this model so set it to True here
 			coarse_too = True
 
-	dataset = get_cifar100_dataset(args, coarse_too)
+	if args.dataset == 'cifar100':
+		dataset = get_dataset(args, coarse_too)
+	else:
+		dataset = get_dataset(args)
+
 	if args.rescale:
 		datagen = ImageDataGenerator(rescale=1./255)
 	elif args.normalize:

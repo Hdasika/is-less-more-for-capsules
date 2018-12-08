@@ -42,6 +42,9 @@ def squash(vectors, axis=-1):
     scale = s_squared_norm / (1 + s_squared_norm) / K.sqrt(s_squared_norm + K.epsilon())
     return scale * vectors
 
+# causes circular import so do it here
+from activations import get_capsule_activation
+
 
 class CapsuleLayer(layers.Layer):
     """
@@ -61,7 +64,7 @@ class CapsuleLayer(layers.Layer):
         self.num_capsule = num_capsule
         self.dim_capsule = dim_capsule
         self.routings = routings
-        self.squash_activation = squash_activation
+        self.squash_activation = get_capsule_activation(squash_activation)
         self.kernel_initializer = initializers.get(kernel_initializer)
 
     def build(self, input_shape):

@@ -19,6 +19,9 @@ def _squash(input_tensor):
     norm_squared = norm * norm
     return (input_tensor / norm) * (norm_squared / (1 + norm_squared))
 
+# causes circular import do it here
+from activations import get_capsule_activation
+
 class Length(layers.Layer):
     def __init__(self, num_classes, seg=True, **kwargs):
         super(Length, self).__init__(**kwargs)
@@ -107,7 +110,7 @@ class ConvCapsuleLayer(layers.Layer):
         self.kernel_initializer = initializers.get(kernel_initializer)
         # whether to apply the squashing operation or not
         self.squash = squash
-        self.squash_activation = squash_activation
+        self.squash_activation = get_capsule_activation(squash_activation)
         self.individual_kernels_per_type = individual_kernels_per_type 
 
     def build(self, input_shape):
