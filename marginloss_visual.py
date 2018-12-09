@@ -40,7 +40,8 @@ print(L_1.shape, L_2.shape)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_wireframe(X, Y, L_1+L_2)
+#ax.plot_wireframe(X, Y, L_1+L_2)
+ax.plot_surface(X, Y, L_1+L_2)
 fig.suptitle('simplified version of the margin loss in 2D space assuming predictions across the 2 classes are the same', fontsize=30,x=0.5,y=0.98)
 fig.align_xlabels
 ax.set_xlabel('Axis-1', fontdict={'fontsize': 20})
