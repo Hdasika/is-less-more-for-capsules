@@ -41,7 +41,9 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_wireframe(X, Y, L_1+L_2)
 
-ax.set_xlabel('Class 1')
-ax.set_ylabel('Class 2')
+ax.set_xlabel('Axis-1')
+ax.set_ylabel('Axix-2')
 ax.set_zlabel('Margin Loss')
+label= 'simplified version of the margin loss in 2D space assuming predictions across the 2 classes are the same'
+ ax..set_title(label, fontdict=None, loc='center', pad=None)
 plt.show()
