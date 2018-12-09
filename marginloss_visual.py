@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 import argparse
+import matplotlib as mpl
 
 
 parser = argparse.ArgumentParser(description='MarginLoss Visualization')
@@ -40,10 +41,12 @@ print(L_1.shape, L_2.shape)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_wireframe(X, Y, L_1+L_2)
+fig.suptitle('simplified version of the margin loss in 2D space assuming predictions across the 2 classes are the same', fontsize=30,x=0.5,y=0.98)
+fig.align_xlabels
+ax.set_xlabel('Axis-1', fontdict={'fontsize': 20})
+ax.set_ylabel('Axis-2', fontdict={'fontsize': 20})
+ax.set_zlabel('Margin Loss', fontdict={'fontsize': 20})
+label= 'Simplified version of the Margin Loss in 2D space assuming predictions across the 2 classes are the same'
 
-ax.set_xlabel('Axis-1')
-ax.set_ylabel('Axix-2')
-ax.set_zlabel('Margin Loss')
-label= 'simplified version of the margin loss in 2D space assuming predictions across the 2 classes are the same'
- ax..set_title(label, fontdict=None, loc='center', pad=None)
+#ax.set_title(label, fontdict={'fontsize': 20}, loc='center', pad=None)
 plt.show()
