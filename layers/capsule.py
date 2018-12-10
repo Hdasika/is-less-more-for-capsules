@@ -38,9 +38,10 @@ def squash(vectors, axis=-1):
     :param axis: the axis to squash
     :return: a Tensor with same shape as input vectors
     """
-    s_squared_norm = K.sum(K.square(vectors), axis, keepdims=True)
-    scale = s_squared_norm / (1 + s_squared_norm) / K.sqrt(s_squared_norm + K.epsilon())
-    return scale * vectors
+    norm = tf.norm(vectors, axis=axis, keepdims=True)
+    squared_norm = norm ** 2
+    scale = squared_norm / (1 + squared_norm)
+    return (vectors / norm) * scale
 
 # causes circular import so do it here
 from activations import get_capsule_activation
