@@ -665,7 +665,7 @@ def TrialModelTwenty(args):
 	conv_caps = ConvCapsuleLayer(kernel_size=9, num_capsule=16, num_atoms=18, strides=1, kernel_initializer=args.init,
 									 padding='valid', routings=3, name='conv_caps')(normalized_primary_caps)
 	# perturb expectation via initializer
-	normalized_conv_caps = layers.BatchNormalization(axis=-1, beta_initializer=initializers.constant(5), name='normalized_conv_caps')(conv_caps)
+	normalized_conv_caps = layers.BatchNormalization(axis=-1, beta_initializer=initializers.constant(0.5), name='normalized_conv_caps')(conv_caps)
 	#######################################################
 
 	# ####################### end layer predictions ###########################
