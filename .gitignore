@@ -4,3 +4,7 @@ __pycache__
 .vscode
 *.swp
 tensorboard
+vis/*
+vis_test/*
+*.h5
+*.hdf5
