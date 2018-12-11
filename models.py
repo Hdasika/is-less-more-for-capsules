@@ -1,6 +1,5 @@
 from keras import layers, models, initializers, constraints
 from layers.coupled_capsule import CoupledConvCapsule
-from layers.capsule_max_pool import CapsMaxPool
 from layers.capsule_norm import CapsuleNorm
 import layers.capsule as caps
 from activations import non_saturating_squash
