@@ -536,20 +536,23 @@ def TrialModelSixteen(args):
 							kernel_initializer=args.init, activation='relu', data_format='channels_last', name='conv_1')(input)
 
 	################# primary caps ########################
-	primary_caps = caps.PrimaryCap(conv_1, dim_capsule=20, n_channels=48,
+	primary_caps = caps.PrimaryCap(conv_1, dim_capsule=12, n_channels=32,
 							kernel_size=5, strides=1, padding='valid', initializer=args.init, to_flatten=False)
 	#######################################################
 
 	################### convolutional capsule #############
-	conv_caps_1 = ConvCapsuleLayer(kernel_size=7, num_capsule=32, num_atoms=24, strides=1, kernel_initializer=args.init,
+	conv_caps_1 = ConvCapsuleLayer(kernel_size=7, num_capsule=24, num_atoms=20, strides=1, kernel_initializer=args.init,
 				padding='valid', routings=3, squash_activation=non_saturating_squash,  name='conv_caps_1')(primary_caps)
-	conv_caps_2 = ConvCapsuleLayer(kernel_size=7, num_capsule=28, num_atoms=32, strides=2, kernel_initializer=args.init,
+	conv_caps_2 = ConvCapsuleLayer(kernel_size=7, num_capsule=24, num_atoms=24, strides=2, kernel_initializer=args.init,
 				padding='valid', routings=3, squash_activation=non_saturating_squash,  name='conv_caps_2')(conv_caps_1)
+	conv_caps_3 = ConvCapsuleLayer(kernel_size=1, num_capsule=16, num_atoms=24, strides=1, kernel_initializer=args.init,
+				padding='valid', routings=3, squash_activation=non_saturating_squash,  name='conv_caps_3')(conv_caps_2)
+
 	#######################################################
 
 	# ####################### end layer predictions ###########################
-	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 32), name='reshaped_conv_caps')(conv_caps_2)
-	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100 if args.dataset == 'cifar100' else 10, dim_capsule=32, routings=3,
+	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 24), name='reshaped_conv_caps')(conv_caps_3)
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100 if args.dataset == 'cifar100' else 10, dim_capsule=28, routings=3,
 									 kernel_initializer=args.init, name='subclass_prediction_caps')(reshaped_conv_caps)
 	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
 	# ############################################################
@@ -671,7 +674,7 @@ def TrialModelTwenty(args):
 	# ####################### end layer predictions ###########################
 	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 18), name='reshaped_conv_caps')(normalized_conv_caps)
 	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100 if args.dataset == 'cifar100' else 10, dim_capsule=24, routings=3,
-									 kernel_initializer=args.init, name='subclass_prediction_caps')(reshaped_conv_caps)
+									 kernel_initializer=initializers.RandomNormal(mean=0.,stddev=1.), name='subclass_prediction_caps')(reshaped_conv_caps)
 	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
 	# ############################################################
 
@@ -680,5 +683,5 @@ def TrialModelTwenty(args):
 
 
 if __name__ == "__main__":
-	model = TrialModelNineteen(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
+	model = TrialModelSixteen(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
 	model.summary()
