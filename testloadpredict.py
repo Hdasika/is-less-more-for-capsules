@@ -1,54 +1,53 @@
-from utils import  prepare_for_model
-from keras.models import load_model,  Model
-from layers import CoupledConvCapsule, CapsMaxPool, CapsuleNorm, CapsuleLayer, Length
-from losses import margin_loss, seg_margin_loss
-from keras import optimizers, metrics, activations
-import cv2
-import numpy as np 
+from keras.models import load_model
 from keras.preprocessing import image
-import matplotlib.pyplot as plt 
+import numpy as np
+from layers import CoupledConvCapsule,CapsMaxPool,CapsuleNorm,Length,CapsuleLayer#,#margin_loss,seg_margin_loss
+from losses import margin_loss, seg_margin_loss
+from keras import optimizers
+from keras import metrics
+from keras.datasets import cifar100
+from keras.preprocessing.image import ImageDataGenerator
 
 
-
-
-model = load_model('out9.h5', custom_objects={
-	'CoupledConvCapsule': CoupledConvCapsule,
-	'CapsMaxPool': CapsMaxPool,
-	'CapsuleNorm': CapsuleNorm,
-	'CapsuleLayer': CapsuleLayer,
-	'Length': Length,
-	'_margin_loss': margin_loss(
-		downweight=0.5, pos_margin=0.7, neg_margin=0.3
-	),
-	'_seg_margin_loss': seg_margin_loss(),
+datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
+# dimensions of our images
+img_width, img_height = 32, 32
+(x_train, y_train), (x_test, y_test) = cifar100.load_data(label_mode='fine')
+print(x_test.shape)
+print(y_test.shape)
+print(y_test)
+datagen.fit(x_test)
+#load the model we saved
+#model = load_model('model9_try.h5')
+model = load_model('model9_try.h5', custom_objects={
+    'CoupledConvCapsule': CoupledConvCapsule,
+    'CapsMaxPool': CapsMaxPool,
+    'CapsuleNorm': CapsuleNorm,
+    'CapsuleLayer': CapsuleLayer,
+    'Length': Length,
+    '_margin_loss': margin_loss(
+        downweight=0.5, pos_margin=0.7, neg_margin=0.3
+    ),
+    '_seg_margin_loss': seg_margin_loss(),
 })
 
-
-model=model.compile(loss='categorical_crossentropy',
-              optimizer=optimizers.Adam(lr=0.0001, decay=1e-6),
-              metrics=[metrics.categorical_accuracy])
-
-img = image.load_img('test.jpg', target_size=None, color_mode='rgb')
-#type(img)
-x = image.img_to_array(img)
- 
-# plt.imshow(x)
-# model.predict_classes(x)
-# Model.predict(x, batch_size =1)
-# Model.predict(x)
-
-img = image.load_img()
+model.summary()
 
 
-# plt.matshow(x)
-# # img = cv2.imread('test.jpg')
-# # img = cv2.resize(img,(32,32))
 
-#img = np.reshape(img,[1,320,240,3])
+correct_classes =0
+on_numb_of_images =0
+for X_batch, y_batch in datagen.flow(x_test, y_test, batch_size=1,shuffle=False):
+  
+  
+  on_numb_of_images = on_numb_of_images + 1 # only predict few sub set of images 
+  classes = model.predict(X_batch,verbose=0,steps=None)
+  index = np.argmax(classes)
+  if (index == y_batch[0][0]):
+      correct_classes= correct_classes +1
 
-# # classes = model.predict_classes(img)
+  if(on_numb_of_images == 500 ): # remove the code , if all the y_test needed
+    break
 
-# # print (classes)model.predict_classes(x)
 
-# #load_model('out9.h5')
-
+print("Accuracy is :", (correct_classes/on_numb_of_images)*100)
