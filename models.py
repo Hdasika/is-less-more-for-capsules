@@ -681,7 +681,42 @@ def TrialModelTwenty(args):
 	model = models.Model(inputs=input, outputs=subclass_out)
 	return model
 
+def TrialModelTwentyOne(args):
+	# Link to the paper https://arxiv.org/pdf/1412.6806.pdf 
+
+	###########################Striving For Simplicity: AllConvnet#################################
+
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_1')(input)
+	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_2')(conv_1)
+	conv_3 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_3')(conv_2)
+	conv_drop_1 = layers.Dropout(0.5)(conv_3)
+	conv_4 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_4')(conv_drop_1)
+	conv_5 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_5')(conv_4)
+	conv_6 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_6')(conv_5)
+	conv_drop_2 = layers.Dropout(0.5)(conv_6)
+	conv_7 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_7')(conv_drop_2)
+	conv_8 = layers.Conv2D(filters=192, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_8')(conv_7)
+	conv_9 = layers.Conv2D(filters=10, kernel_size=3, padding='same', activation='relu',
+				kernel_initializer=args.init, data_format='channels_last', name='conv_9')(conv_8)
+	avg_pool = layers.GlobalAveragePooling2D(data_format='channels_last', name='avg_pool')(conv_9)
+	subclass_out = layers.Dense(100, activation='softmax', name='subclass_out')(avg_pool)
+    #############################################################
+	
+	model = models.Model(inputs=input, outputs=subclass_out)
+	
+	#############################################################
+	return model
+
 
 if __name__ == "__main__":
-	model = TrialModelSixteen(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
+	model = TrialModelTwentyOne(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
 	model.summary()
