@@ -716,6 +716,36 @@ def TrialModelTwentyOne(args):
 	#############################################################
 	return model
 
+def TrialModelTwentyTwo(args):
+	# Model 14 with BatchNormalization
+
+	################## convolutional ######################
+	input = layers.Input((32,32,3 if not args.gray else 1))
+	convolutional = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid',
+									kernel_initializer=args.init, activation='relu', data_format='channels_last', name='conv')(input)
+
+	################# primary caps ########################
+	primary_caps = caps.PrimaryCap(convolutional, dim_capsule=12, n_channels=32,
+									 kernel_size=9, strides=1, padding='valid', initializer=args.init, to_flatten=False)
+	normalized_primary_caps = layers.BatchNormalization(axis=-1, name='normalized_primary_caps')(primary_caps)
+	#######################################################
+
+	################### convolutional capsule #############
+	conv_caps = ConvCapsuleLayer(kernel_size=9, num_capsule=16, num_atoms=18, strides=1, kernel_initializer=args.init,
+									 padding='valid', routings=0, name='conv_caps')(normalized_primary_caps)
+	normalized_conv_caps = layers.BatchNormalization(axis=-1, name='normalized_conv_caps')(conv_caps)
+	#######################################################
+
+	# ####################### end layer predictions ###########################
+	reshaped_conv_caps = layers.Reshape(target_shape=(-1, 18), name='reshaped_conv_caps')(normalized_conv_caps)
+	subclass_prediction_caps = caps.CapsuleLayer(num_capsule=100 if args.dataset == 'cifar100' else 10, dim_capsule=24, routings=3,
+									 kernel_initializer=args.init, name='subclass_prediction_caps')(reshaped_conv_caps)
+	subclass_out = caps.Length(name='subclass_out')(subclass_prediction_caps)
+	# ############################################################
+
+	model = models.Model(inputs=input, outputs=subclass_out)
+	return model	
+
 
 if __name__ == "__main__":
 	model = TrialModelTwentyOne(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
