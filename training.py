@@ -93,7 +93,7 @@ if args.model_series is not None:
 	elif args.model_series == 22:
 		dataset, gen, model = utils.prepare_for_model(models.TrialModelTwentyTwo, args)
 	elif args.model_series == 23:
-		dataset, gen, model = utils.prepare_for_model(models.TrialModelTwentyTwo, args)			
+		dataset, gen, model = utils.prepare_for_model(models.TrialModelTwentyThree, args)			
 else:
 	dataset, gen, model = utils.prepare_for_model(None, args)
 
