@@ -748,5 +748,5 @@ def TrialModelTwentyTwo(args):
 
 
 if __name__ == "__main__":
-	model = TrialModelTwentyOne(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
+	model = TrialModelTwentyTwo(SimpleNamespace(gray=False, init='glorot_uniform',dataset='cifar10'))
 	model.summary()
