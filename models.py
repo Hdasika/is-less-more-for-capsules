@@ -752,8 +752,9 @@ def TrialModelTwentyThree(args):
 	###########################Striving For Simplicity: AllConvnet Try 2#################################
 
 	input = layers.Input((32,32,3 if not args.gray else 1))
+	dropout_input = layers.Dropout(0.2)(input)
 	conv_1 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
-				kernel_initializer=args.init, data_format='channels_last', name='conv_1')(input)
+				kernel_initializer=args.init, data_format='channels_last', name='conv_1')(dropout_input)
 	conv_2 = layers.Conv2D(filters=96, kernel_size=3, padding='same', activation='relu',
 				kernel_initializer=args.init, data_format='channels_last', name='conv_2')(conv_1)
 	conv_3 = layers.Conv2D(filters=96, kernel_size=3, strides=2, padding='same', activation='relu',
