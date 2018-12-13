@@ -41,12 +41,12 @@ print(L_1.shape, L_2.shape)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 #ax.plot_wireframe(X, Y, L_1+L_2)
-ax.plot_surface(X, Y, L_1+L_2)
-fig.suptitle('simplified version of the margin loss in 2D space assuming predictions across the 2 classes are the same', fontsize=30,x=0.5,y=0.98)
+ax.plot_wireframe(X, Y, L_1+L_2)
+fig.suptitle('simplified topology of margin loss', fontsize=40,x=0.49,y=0.88)
 fig.align_xlabels
-ax.set_xlabel('Axis-1', fontdict={'fontsize': 20})
-ax.set_ylabel('Axis-2', fontdict={'fontsize': 20})
-ax.set_zlabel('Margin Loss', fontdict={'fontsize': 20})
+ax.set_xlabel('Class-1 predictions', fontdict={'fontsize': 40})
+ax.set_ylabel('Class-2 predictions', fontdict={'fontsize': 40})
+ax.set_zlabel('Margin Loss', fontdict={'fontsize': 40})
 label= 'Simplified version of the Margin Loss in 2D space assuming predictions across the 2 classes are the same'
 
 #ax.set_title(label, fontdict={'fontsize': 20}, loc='center', pad=None)
