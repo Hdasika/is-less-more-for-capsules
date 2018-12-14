@@ -27,6 +27,7 @@ parser.add_argument('--margin_downweight', required=False, type=float, default=0
 parser.add_argument('--pos_margin', required=False, type=float, default=0.9, help='Positive margin - 0 <= pos_margin <= 1')
 parser.add_argument('--neg_margin', required=False, type=float, default=0.1, help='Negative margin - 0 <= neg_margin <= 1')
 parser.add_argument('--val_split', type=float, required=False, default=0.1, help='Validation split')
+parser.add_argument('--optimizer', type=str, choices=['sgd', 'adam'], default='adam', help='Optimizer to use (hyperparameters are specified by default)')
 parser.add_argument('-tb', '--tensorboard', required=False, action='store_true', help='Use tensorboard or not')
 parser.add_argument('--tb_dir', type=str, required=False, default='./tensorboard', help='Tensorboard directory (only applies if -tb is given)')
 parser.add_argument('--tb_rate', type=int, required=False, default=1000, help='Tensorboard update rate')

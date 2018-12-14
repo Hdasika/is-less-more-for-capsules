@@ -105,7 +105,12 @@ def create_data_generator(gen, X, Y_fine, Y_coarse=None, batch_size=8):
 def prepare_for_model(model_fn, args, coarse_too=False):
 	if args.resume_model is None:
 		model = model_fn(args)
-		opt = optimizers.Adam(lr=args.lr, decay=1e-6)
+
+		if args.optimizer == 'adam':		
+			opt = optimizers.Adam(lr=args.lr, decay=1e-6)
+		elif args.optimizer == 'sgd':
+			opt = optimizers.SGD(lr=args.lr, momentum=0.9, decay=1e-6)
+			
 		if args.loss == 'cc':
 			loss = 'categorical_crossentropy'
 		elif args.loss == 'margin':
